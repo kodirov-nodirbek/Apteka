@@ -89,6 +89,7 @@ class Nasiyachi(models.Model):
     address = models.CharField(max_length=155)
     passport = models.CharField(max_length=22, null=True)
     created_at = models.DateField(auto_now=True)
+    apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
 
 
     def jami_qarzi(self):
@@ -108,6 +109,7 @@ class Nasiya(models.Model):
     time = models.TimeField(auto_now=True)
     tolov_muddati = models.DateField()
     nasiyachi_id = models.ForeignKey(to=Nasiyachi, on_delete=models.CASCADE)
+    apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
 
     def qolgan_qarz(self):
         return self.nasiya_summasi-self.tolangan_summa
