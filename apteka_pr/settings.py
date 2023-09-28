@@ -31,7 +31,7 @@ ALLOWED_HOSTS = ["*"]
 
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1", 
-    "http://192.168.1.25", 
+    "http://192.168.1.25",
 ]
 
 CORS_ALLOW_CREDENTIALS = False

@@ -16,12 +16,22 @@ class FirmaSerializer(serializers.ModelSerializer):
 class FirmaSavdolariSerializer(serializers.ModelSerializer):
     class Meta:
         model = FirmaSavdolari
-        fields = ['id', 'apteka_id', 'firma_id', 'shartnoma_raqami', 'harid_sanasi', 'tolov_muddati', 'tolangan_summalar', 'tolandi', 'tan_narxi', 'sotish_narxi', 'jami_tolangan_summa', 'jami_qarz']
+        fields = ['id', 'apteka_id', 'firma_id', 'shartnoma_raqami', 'qaytarilgan_tovar_summasi', 'harid_sanasi', 'tolov_muddati', 'tolangan_summalar', 'tolandi', 'tan_narxi', 'sotish_narxi', 'jami_tolangan_summa', 'jami_qarz', 'ochirishga_sorov']
+
+    tolandi = serializers.SerializerMethodField()
+
+    def get_tolandi(self, obj):
+        return obj.jami_qarz() <= 0
 
     def add_payment(self, instance, validated_data):
         paid_amount = validated_data.get('paid_amount')
-        payment_date = datetime.now()  # You can replace this with the actual payment date
+        payment_date = datetime.now()
         instance.add_payment(paid_amount, payment_date)
+
+class FirmaTolovPatch(serializers.Serializer):
+    qaytarilgan_tovar_summasi = serializers.DecimalField(max_digits=14, decimal_places=0)
+    tolangan_summalar = serializers.JSONField()
+
 
 class NasiyachiSerializer(serializers.ModelSerializer):
     class Meta:
@@ -32,7 +42,7 @@ class NasiyachiSerializer(serializers.ModelSerializer):
 class NasiyaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Nasiya
-        fields = ['id', 'chek_raqami', 'date', 'time', 'nasiya_summasi', 'tolangan_summa', 'tolov_tarixi', 'tolov_muddati', 'tolandi', 'nasiyachi_id']
+        fields = ['id', 'chek_raqami', 'date', 'time', 'nasiya_summasi', 'tolangan_summalar', 'tolov_muddati', 'tolandi', 'nasiyachi_id']
         
 class KunlikSavdoSerializer(serializers.ModelSerializer):
     class Meta:

@@ -1,6 +1,6 @@
 from datetime import datetime
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, filters, generics
+from rest_framework import viewsets, filters, status
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -33,32 +33,22 @@ class FirmaViewSet(ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
 
-# class FirmaSavdolariViewSet(viewsets.ModelViewSet):
-#     queryset = FirmaSavdolari.objects.all().order_by("tolov_muddati")
-#     serializer_class = serializers.FirmaSavdolariSerializer
-
-#     filter_backends = [filters.SearchFilter]
-#     search_fields = ['name', 'masul_shaxs', 'phone', 'eng_yaqin_tolov_sanasi']
-    
-#     def get_queryset(self):
-#         firma_id = self.kwargs['firma_id']
-#         return FirmaSavdolari.objects.filter(firma_id=firma_id)
-    
-#     def perform_create(self, serializer):
-#         serializer.save()
-#         validated_data = serializer.validated_data
-#         instance = serializer.instance
-#         serializer.add_payment(instance, validated_data)
 class FirmaSavdolariViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.FirmaSavdolariSerializer
     filter_backends = [filters.SearchFilter]
-    search_fields = ['name', 'masul_shaxs', 'phone', 'eng_yaqin_tolov_sanasi']
+    search_fields = ['shartnoma_raqami', 'harid_sanasi', 'tolov_muddati']
 
     def get_queryset(self):
         queryset = FirmaSavdolari.objects.all().order_by("tolov_muddati")
-        filter_param = self.request.query_params.get('firma_id')
-        if filter_param:
-            queryset = queryset.filter(firma_id=filter_param)
+        firma_id = self.request.query_params.get('firma_id')
+        shartnoma_raqami = self.request.query_params.get('shartnoma_raqami')
+        if firma_id and shartnoma_raqami:
+            queryset = queryset.filter(firma_id=firma_id, shartnoma_raqami=shartnoma_raqami)
+        elif firma_id:
+            queryset = queryset.filter(firma_id=firma_id)
+        elif shartnoma_raqami:
+            queryset = queryset.filter(shartnoma_raqami=shartnoma_raqami)
+
         return queryset
 
     def perform_create(self, serializer):

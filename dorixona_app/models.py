@@ -10,7 +10,7 @@ class Apteka(models.Model):
         verbose_name_plural = "Aptekalar"
     name = models.CharField(max_length=155)
     address = models.CharField(max_length=255)
-    jami_qoldiq = models.DecimalField(max_digits=14, decimal_places=2)
+    jami_qoldiq = models.DecimalField(max_digits=14, decimal_places=0)
     last_update = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -23,7 +23,6 @@ class Firma(models.Model):
     name = models.CharField(max_length=155)
     masul_shaxs = models.CharField(max_length=255)
     phone = models.CharField(max_length=22)
-    # eng_yaqin_tolov_sanasi = models.DateField()
     
     def __str__(self):
         return self.name
@@ -54,17 +53,22 @@ class FirmaSavdolari(models.Model):
     harid_sanasi = models.DateTimeField(auto_now=True)
     tolov_muddati = models.DateField()
     tolangan_summalar = models.JSONField(default=list, null=True)
-    tolandi = models.BooleanField(default=False)
-    tan_narxi = models.DecimalField(max_digits=14, decimal_places=2)
-    sotish_narxi = models.DecimalField(max_digits=14, decimal_places=2)
+    tan_narxi = models.DecimalField(max_digits=14, decimal_places=0)
+    sotish_narxi = models.DecimalField(max_digits=14, decimal_places=0)
+    qaytarilgan_tovar_summasi = models.DecimalField(max_digits=14, decimal_places=0, default=Decimal(0))
+    ochirishga_sorov = models.BooleanField(default=False)
+    izoh = models.TextField(null=True, blank=True)
+
 
     def jami_tolangan_summa(self):
         tolangan_summalar = self.tolangan_summalar or []
         return sum(item.get('summa', 0) for item in tolangan_summalar)
+    
     def jami_qarz(self):
         tan_narxi = self.tan_narxi or Decimal(0)
         tolangan_summa = self.jami_tolangan_summa()
-        return tan_narxi - tolangan_summa
+        qaytarilgan_tovar_summasi = self.qaytarilgan_tovar_summasi or Decimal(0)
+        return tan_narxi - tolangan_summa - qaytarilgan_tovar_summasi
 
     def add_payment(self, paid_amount, payment_date):
         if self.tolangan_summalar is None:
@@ -101,9 +105,8 @@ class Nasiya(models.Model):
         verbose_name = "Nasiya"
         verbose_name_plural = "Nasiyalar"
     chek_raqami = models.PositiveBigIntegerField()
-    nasiya_summasi = models.DecimalField(max_digits=14, decimal_places=2)
-    tolangan_summa = models.DecimalField(max_digits=14, decimal_places=2, default=0)
-    tolov_tarixi = models.JSONField(default=dict)
+    nasiya_summasi = models.DecimalField(max_digits=14, decimal_places=0)
+    tolangan_summalar = models.JSONField(default=list, null=True)
     tolandi = models.BooleanField(default=False)
     date = models.DateField(auto_now=True)
     time = models.TimeField(auto_now=True)
@@ -111,15 +114,31 @@ class Nasiya(models.Model):
     nasiyachi_id = models.ForeignKey(to=Nasiyachi, on_delete=models.CASCADE)
     apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
 
+    def jami_tolangan_summa(self):
+        tolangan_summalar = self.tolangan_summalar or []
+        return sum(item.get('summa', 0) for item in tolangan_summalar)
+
     def qolgan_qarz(self):
-        return self.nasiya_summasi-self.tolangan_summa
+        return self.nasiya_summasi-self.jami_tolangan_summa()
+    
+    def add_payment(self, paid_amount, payment_date):
+        if self.tolangan_summalar is None:
+            self.tolangan_summalar = []
+
+        payment_data = {
+            'summa': paid_amount,
+            'harid_sanasi': payment_date.isoformat() if payment_date else timezone.now().isoformat()
+        }
+        if payment_data['summa'] != None:
+            self.tolangan_summalar.append(payment_data)
+            self.save()
 
 
 class KunlikSavdo(models.Model):
     class Meta:
         verbose_name = "Kunliksavdo"
         verbose_name_plural = "Kunliksavdolar"
-    jami_summa = models.DecimalField(max_digits=14, decimal_places=2)
+    jami_summa = models.DecimalField(max_digits=14, decimal_places=0)
     date = models.DateField()
 
 
@@ -134,7 +153,7 @@ class HisoblanganOylik(models.Model):
     class Meta:
         verbose_name = "Hisoblanganoylik"
         verbose_name_plural = "Hisoblanganoyliklar"
-    oylik = models.DecimalField(max_digits=14, decimal_places=2)
+    oylik = models.DecimalField(max_digits=14, decimal_places=0)
     hodim = models.ForeignKey(to=User, on_delete=models.PROTECT)
     oylik_tarixi = models.JSONField(default=dict) 
 
@@ -144,5 +163,5 @@ class Harajat(models.Model):
         verbose_name = "Harajat"
         verbose_name_plural = "Harajatlar"
 
-    harajat_summasi = models.DecimalField(max_digits=14, decimal_places=2)
+    harajat_summasi = models.DecimalField(max_digits=14, decimal_places=0)
     date = models.DateField(auto_now=True)
