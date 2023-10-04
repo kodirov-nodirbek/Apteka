@@ -99,6 +99,8 @@ class Nasiyachi(models.Model):
     def jami_qarzi(self):
         return sum(nasiya.qolgan_qarz() for nasiya in self.nasiya_set.filter(tolandi=False))
 
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
     
 class Nasiya(models.Model):
     class Meta:

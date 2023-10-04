@@ -36,13 +36,13 @@ class FirmaTolovPatch(serializers.Serializer):
 class NasiyachiSerializer(serializers.ModelSerializer):
     class Meta:
         model = Nasiyachi
-        fields = ['id', 'first_name', 'last_name', 'middle_name', 'phone', 'address', 'passport', 'created_at', 'jami_qarzi']
+        fields = ['id', 'first_name', 'last_name', 'middle_name', 'phone', 'address', 'passport', 'created_at', 'jami_qarzi', 'apteka_id']
 
 
 class NasiyaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Nasiya
-        fields = ['id', 'chek_raqami', 'date', 'time', 'nasiya_summasi', 'tolangan_summalar', 'tolov_muddati', 'tolandi', 'nasiyachi_id']
+        fields = ['id', 'chek_raqami', 'date', 'time', 'nasiya_summasi', 'tolangan_summalar', 'tolov_muddati', 'tolandi', 'nasiyachi_id', 'apteka_id']
         
 class KunlikSavdoSerializer(serializers.ModelSerializer):
     class Meta:
