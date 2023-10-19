@@ -42,8 +42,17 @@ class NasiyachiSerializer(serializers.ModelSerializer):
 class NasiyaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Nasiya
-        fields = ['id', 'chek_raqami', 'date', 'time', 'nasiya_summasi', 'tolangan_summalar', 'tolov_muddati', 'tolandi', 'nasiyachi_id', 'apteka_id']
-        
+        fields = ['id', 'chek_raqami', 'date', 'time', 'nasiya_summasi', 'tolangan_summalar', 'jami_tolangan_summa', 'tolov_muddati', 'tolandi', 'nasiyachi_id', 'apteka_id']
+    
+    tolandi = serializers.SerializerMethodField()
+
+    def get_tolandi(self, obj):
+        return obj.qolgan_qarz() <= 0
+
+# class NasiyaTolovPatch(serializers.Serializer):
+#     qaytarilgan_tovar_summasi = serializers.DecimalField(max_digits=14, decimal_places=0)
+#     tolangan_summalar = serializers.JSONField()
+
 class KunlikSavdoSerializer(serializers.ModelSerializer):
     class Meta:
         model = KunlikSavdo

@@ -62,7 +62,7 @@ class FirmaSavdolari(models.Model):
 
     def jami_tolangan_summa(self):
         tolangan_summalar = self.tolangan_summalar or []
-        return sum(item.get('summa', 0) for item in tolangan_summalar)
+        return sum(int(item.get('summa', 0)) for item in tolangan_summalar)
     
     def jami_qarz(self):
         tan_narxi = self.tan_narxi or Decimal(0)
@@ -97,7 +97,7 @@ class Nasiyachi(models.Model):
 
 
     def jami_qarzi(self):
-        return sum(nasiya.qolgan_qarz() for nasiya in self.nasiya_set.filter(tolandi=False))
+        return sum(nasiya.qolgan_qarz() for nasiya in self.nasiya_set.filter())
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
@@ -109,7 +109,7 @@ class Nasiya(models.Model):
     chek_raqami = models.PositiveBigIntegerField()
     nasiya_summasi = models.DecimalField(max_digits=14, decimal_places=0)
     tolangan_summalar = models.JSONField(default=list, null=True)
-    tolandi = models.BooleanField(default=False)
+    # tolandi = models.BooleanField(default=False)
     date = models.DateField(auto_now=True)
     time = models.TimeField(auto_now=True)
     tolov_muddati = models.DateField()
@@ -118,7 +118,7 @@ class Nasiya(models.Model):
 
     def jami_tolangan_summa(self):
         tolangan_summalar = self.tolangan_summalar or []
-        return sum(item.get('summa', 0) for item in tolangan_summalar)
+        return sum(int(item.get('summa', 0)) for item in tolangan_summalar)
 
     def qolgan_qarz(self):
         return self.nasiya_summasi-self.jami_tolangan_summa()

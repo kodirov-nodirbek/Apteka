@@ -1,6 +1,6 @@
 from datetime import datetime
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, filters, status
+from rest_framework import filters, status
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -33,7 +33,7 @@ class FirmaViewSet(ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
 
-class FirmaSavdolariViewSet(viewsets.ModelViewSet):
+class FirmaSavdolariViewSet(ModelViewSet):
     serializer_class = serializers.FirmaSavdolariSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['shartnoma_raqami', 'harid_sanasi', 'tolov_muddati']
@@ -51,11 +51,28 @@ class FirmaSavdolariViewSet(viewsets.ModelViewSet):
 
         return queryset
 
+    def update(self, request, *args, **kwargs):
+        
+        return super().update(request, *args, **kwargs)
+
+    # def create(self, request, *args, **kwargs):
+    #     savdo = request.data
+    #     serializer = serializers.FirmaSavdolariSerializer(data=savdo)
+    #     serializer.is_valid(raise_exception=True)
+    #     valid_data = serializer.validated_data
+    #     output = {**serializer.data}
+    #     print(valid_data)
+    #     return Response(output, status=status.HTTP_201_CREATED)
+
     def perform_create(self, serializer):
         serializer.save()
         instance = serializer.instance
         serializer.add_payment(instance, serializer.validated_data)
 
+# class FirmaSavdolariTolovView(APIView):
+#     def post(self, request):
+#         firma_savdolari = FirmaSavdolari.objects.all()
+#         serializer = serializers.FirmaSerializer(firma_savdolari, many=True)
 
 class NasiyachiViewSet(ModelViewSet):
     queryset = Nasiyachi.objects.all()
@@ -69,6 +86,7 @@ class NasiyachiViewSet(ModelViewSet):
     
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
+    
 
 class NasiyaViewSet(ModelViewSet):
     queryset = Nasiya.objects.all()
@@ -79,6 +97,13 @@ class NasiyaViewSet(ModelViewSet):
     
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
+    
+    def get_queryset(self):
+        queryset = Nasiya.objects.all()
+        nasiyachi_id = self.request.query_params.get('nasiyachi_id')
+        if nasiyachi_id:
+            queryset = queryset.filter(nasiyachi_id=nasiyachi_id)
+        return queryset
     
 class KunlikSavdoViewSet(ModelViewSet):
     queryset = KunlikSavdo.objects.all()
