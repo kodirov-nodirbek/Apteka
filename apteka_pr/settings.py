@@ -35,6 +35,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://192.168.1.25",
 ]
 
+APPEND_SLASH = False
+
 CORS_ALLOW_CREDENTIALS = False
 # Application definition
 

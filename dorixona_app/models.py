@@ -38,6 +38,9 @@ class Firma(models.Model):
         
         return total_tan_narxi - total_tolangan_summa
     
+    def haqdor(self):
+        return int(self.jami_haqi())>0
+
     def eng_yaqin_tolov_muddati(self):
         firma_savdolari = FirmaSavdolari.objects.filter(firma_id=self).order_by('tolov_muddati')
         return firma_savdolari.first().tolov_muddati if firma_savdolari else 0
@@ -69,6 +72,9 @@ class FirmaSavdolari(models.Model):
         tolangan_summa = self.jami_tolangan_summa()
         qaytarilgan_tovar_summasi = self.qaytarilgan_tovar_summasi or Decimal(0)
         return tan_narxi - tolangan_summa - qaytarilgan_tovar_summasi
+
+    def tolandi(self):
+        return self.jami_qarz()<=0
 
     def add_payment(self, paid_amount, payment_date):
         if self.tolangan_summalar is None:

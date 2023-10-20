@@ -17,6 +17,7 @@ class FimaSavdolariAdmin(admin.ModelAdmin):
     list_display = ('id', "firma_id", "harid_sanasi", "tan_narxi")
     search_fields = ("harid_sanasi",)
     list_display_links = ("firma_id",)
+    sortable_by = ('tolov_muddati')
 
 @admin.register(Nasiyachi)
 class NasiyachiAdmin(admin.ModelAdmin):

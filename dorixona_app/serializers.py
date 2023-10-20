@@ -11,17 +11,12 @@ class AptekaSerializer(serializers.ModelSerializer):
 class FirmaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Firma
-        fields = ['id', 'name', 'masul_shaxs', 'phone', 'jami_haqi', 'eng_yaqin_tolov_muddati']
+        fields = ['id', 'name', 'masul_shaxs', 'phone', 'jami_haqi', 'haqdor', 'eng_yaqin_tolov_muddati']
 
 class FirmaSavdolariSerializer(serializers.ModelSerializer):
     class Meta:
         model = FirmaSavdolari
         fields = ['id', 'apteka_id', 'firma_id', 'shartnoma_raqami', 'qaytarilgan_tovar_summasi', 'harid_sanasi', 'tolov_muddati', 'tolangan_summalar', 'tolandi', 'tan_narxi', 'sotish_narxi', 'jami_tolangan_summa', 'jami_qarz', 'ochirishga_sorov']
-
-    tolandi = serializers.SerializerMethodField()
-
-    def get_tolandi(self, obj):
-        return obj.jami_qarz() <= 0
 
     def add_payment(self, instance, validated_data):
         paid_amount = validated_data.get('paid_amount')

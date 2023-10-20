@@ -4,7 +4,8 @@ from . import views
 
 router = DefaultRouter()
 router.register("aptekalar", views.AptekaViewSet)
-router.register("firmalar", views.FirmaViewSet)
+# router.register("firmalar", views.FirmaViewSet)
+router.register(r'firmalar', views.FirmaViewSet, basename='firmalar') 
 # router.register("firma_savdolari", views.FirmaSavdolariViewSet)
 router.register(r'firma_savdolari', views.FirmaSavdolariViewSet, basename='firmasavdolari')
 router.register("nasiyachilar", views.NasiyachiViewSet)
@@ -18,4 +19,5 @@ router.register("harajatlar", views.HarajatViewSet)
 
 urlpatterns = [
     path('sana/', views.HozirgiSana.as_view(), name='sana'),
+    # path('firmalar/<int:pk>/', views.FirmaViewSet.as_view({'patch': 'partial_update', 'get':'list'})),
 ] + router.urls

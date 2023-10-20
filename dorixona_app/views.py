@@ -1,9 +1,10 @@
 from datetime import datetime
-from django_filters.rest_framework import DjangoFilterBackend
+from django_filters.rest_framework import DjangoFilterBackend, FilterSet
 from rest_framework import filters, status
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.response import Response
+import json
 
 
 from . import serializers
@@ -19,19 +20,58 @@ class AptekaViewSet(ModelViewSet):
     
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
-    
+
+
 class FirmaViewSet(ModelViewSet):
     queryset = Firma.objects.all()
     serializer_class = serializers.FirmaSerializer
  
     filter_backends = [filters.SearchFilter]
-    search_fields = ['name', 'masul_shaxs', 'phone', 'eng_yaqin_tolov_sanasi']
+    search_fields = ['name', 'masul_shaxs', 'phone']
     
-    def get_serializer_context(self):
-        return {'request': self.request}
+    def get_queryset(self):
+        queryset = Firma.objects.all()
+        firma_id = self.request.query_params.get('id')
+        if firma_id:
+            queryset = queryset.filter(firma_id=firma_id)
+        
+        return queryset
+
+    def partial_update(self, request, *args, **kwargs):
+        firma_object = self.get_object()
+        savdolar = [savdo for savdo in FirmaSavdolari.objects.filter(firma_id=firma_object.id).order_by("tolov_muddati") if savdo.tolandi()==False]
+        data = request.data
+        tolov = data.get("tolov")
+        apteka_id = data.get("apteka_id")
+        for savdo in savdolar:
+            if savdo.jami_qarz()>=tolov:
+                pay = {
+                    "summa": int(tolov),
+                    'sana': str(datetime.now()),
+                    'apteka_id': apteka_id
+                }
+                savdo.tolangan_summalar.append(pay)
+                savdo.save()
+                break
+            elif savdo.jami_qarz()<tolov:
+                pay = {
+                    "summa": int(savdo.jami_qarz()),
+                    'sana': str(datetime.now()),
+                    'apteka_id': apteka_id
+                }
+                tolov-=savdo.jami_qarz()
+                savdo.tolangan_summalar.append(pay)
+                savdo.save()
+
+        firma_object.name = data.get("name", firma_object.name)
+        firma_object.masul_shaxs = data.get("masul_shaxs", firma_object.masul_shaxs)
+        firma_object.phone = data.get("phone", firma_object.phone)
+
+        firma_object.save()
+
+        serializer = serializers.FirmaSerializer(firma_object)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
 
 class FirmaSavdolariViewSet(ModelViewSet):
     serializer_class = serializers.FirmaSavdolariSerializer
@@ -51,28 +91,11 @@ class FirmaSavdolariViewSet(ModelViewSet):
 
         return queryset
 
-    def update(self, request, *args, **kwargs):
-        
-        return super().update(request, *args, **kwargs)
-
-    # def create(self, request, *args, **kwargs):
-    #     savdo = request.data
-    #     serializer = serializers.FirmaSavdolariSerializer(data=savdo)
-    #     serializer.is_valid(raise_exception=True)
-    #     valid_data = serializer.validated_data
-    #     output = {**serializer.data}
-    #     print(valid_data)
-    #     return Response(output, status=status.HTTP_201_CREATED)
-
     def perform_create(self, serializer):
         serializer.save()
         instance = serializer.instance
         serializer.add_payment(instance, serializer.validated_data)
 
-# class FirmaSavdolariTolovView(APIView):
-#     def post(self, request):
-#         firma_savdolari = FirmaSavdolari.objects.all()
-#         serializer = serializers.FirmaSerializer(firma_savdolari, many=True)
 
 class NasiyachiViewSet(ModelViewSet):
     queryset = Nasiyachi.objects.all()
