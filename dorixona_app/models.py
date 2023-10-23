@@ -144,11 +144,16 @@ class Nasiya(models.Model):
 
 class KunlikSavdo(models.Model):
     class Meta:
-        verbose_name = "Kunliksavdo"
-        verbose_name_plural = "Kunliksavdolar"
-    jami_summa = models.DecimalField(max_digits=14, decimal_places=0)
+        verbose_name = "Kunlik savdo"
+        verbose_name_plural = "Kunlik savdolar"
+    naqd_pul = models.DecimalField(max_digits=14, decimal_places=0)
+    terminal = models.DecimalField(max_digits=14, decimal_places=0)
+    card_to_card = models.DecimalField(max_digits=14, decimal_places=0)
+    inkassa = models.DecimalField(max_digits=14, decimal_places=0)
     date = models.DateField()
 
+    def jami_summa(self):
+        return self.naqd_pul+self.terminal+self.card_to_card+self.inkassa
 
 class Bolim(models.Model):
     class Meta:

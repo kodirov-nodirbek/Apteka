@@ -41,10 +41,10 @@ class FirmaViewSet(ModelViewSet):
         firma_object = self.get_object()
         savdolar = [savdo for savdo in FirmaSavdolari.objects.filter(firma_id=firma_object.id).order_by("tolov_muddati") if savdo.tolandi()==False]
         data = request.data
-        tolov = data.get("tolov")
-        apteka_id = data.get("apteka_id")
+        tolov = data.get("tolov", None)
+        apteka_id = data.get("apteka_id", None)
         for savdo in savdolar:
-            if savdo.jami_qarz()>=tolov:
+            if tolov and apteka_id and savdo.jami_qarz()>=tolov:
                 pay = {
                     "summa": int(tolov),
                     'sana': str(datetime.now()),
@@ -53,7 +53,7 @@ class FirmaViewSet(ModelViewSet):
                 savdo.tolangan_summalar.append(pay)
                 savdo.save()
                 break
-            elif savdo.jami_qarz()<tolov:
+            elif tolov and apteka_id and savdo.jami_qarz()<tolov:
                 pay = {
                     "summa": int(savdo.jami_qarz()),
                     'sana': str(datetime.now()),

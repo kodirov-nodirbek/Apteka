@@ -44,14 +44,11 @@ class NasiyaSerializer(serializers.ModelSerializer):
     def get_tolandi(self, obj):
         return obj.qolgan_qarz() <= 0
 
-# class NasiyaTolovPatch(serializers.Serializer):
-#     qaytarilgan_tovar_summasi = serializers.DecimalField(max_digits=14, decimal_places=0)
-#     tolangan_summalar = serializers.JSONField()
 
 class KunlikSavdoSerializer(serializers.ModelSerializer):
     class Meta:
         model = KunlikSavdo
-        fields = ['id', 'date', 'jami_summa']
+        fields = ['id', 'naqd_pul', 'terminal', 'card_to_card', 'inkassa', 'jami_summa', 'date']
 
 class BolimSerializer(serializers.ModelSerializer):
     class Meta:
