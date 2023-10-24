@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import Iterable, Optional
 from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import User
@@ -115,7 +116,6 @@ class Nasiya(models.Model):
     chek_raqami = models.PositiveBigIntegerField()
     nasiya_summasi = models.DecimalField(max_digits=14, decimal_places=0)
     tolangan_summalar = models.JSONField(default=list, null=True)
-    # tolandi = models.BooleanField(default=False)
     date = models.DateField(auto_now=True)
     time = models.TimeField(auto_now=True)
     tolov_muddati = models.DateField()
@@ -150,7 +150,8 @@ class KunlikSavdo(models.Model):
     terminal = models.DecimalField(max_digits=14, decimal_places=0)
     card_to_card = models.DecimalField(max_digits=14, decimal_places=0)
     inkassa = models.DecimalField(max_digits=14, decimal_places=0)
-    date = models.DateField()
+    apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
 
     def jami_summa(self):
         return self.naqd_pul+self.terminal+self.card_to_card+self.inkassa
@@ -161,6 +162,19 @@ class Bolim(models.Model):
         verbose_name_plural = "Bolimlar"
     bolim_nomi = models.CharField(max_length=255)
 
+class Hodim(models.Model):
+    class Meta:
+        verbose_name = "Hodim"
+        verbose_name_plural = "Hodimlar"
+    first_name = models.CharField(max_length=155)
+    last_name = models.CharField(max_length=155)
+    middle_name = models.CharField(max_length=155)
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
 
 class HisoblanganOylik(models.Model):
     class Meta:
@@ -175,6 +189,28 @@ class Harajat(models.Model):
     class Meta:
         verbose_name = "Harajat"
         verbose_name_plural = "Harajatlar"
+    naqd_pul = models.DecimalField(max_digits=14, decimal_places=0)
+    plastik = models.DecimalField(max_digits=14, decimal_places=0)
+    izoh = models.TextField()
+    hodim_id = models.ForeignKey(to=Hodim, on_delete=models.CASCADE)
+    apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now=True)
 
-    harajat_summasi = models.DecimalField(max_digits=14, decimal_places=0)
-    date = models.DateField(auto_now=True)
+    def jami_harajat(self):
+        return self.naqd_pul+self.plastik
+    
+class TovarYuborishFilial(models.Model):
+    tovar_summasi = models.DecimalField(max_digits=14, decimal_places=0)
+    from_filial = models.PositiveIntegerField()
+    to_filial = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
+    accepted = models.BooleanField(default=False)
+    date = models.DateTimeField(auto_now_add=True)
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        if self.accepted:
+            from_filial = Apteka.objects.get(id=self.from_filial)
+            from_filial.jami_qoldiq-=self.tovar_summasi
+            self.to_filial.jami_qoldiq+=self.tovar_summasi
+            from_filial.save()
+            self.to_filial.save()
+        super(TovarYuborishFilial, self).save(force_insert=False, force_update=False, using=None, update_fields=None)

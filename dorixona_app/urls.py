@@ -14,6 +14,8 @@ router.register("kunliksavdo", views.KunlikSavdoViewSet)
 router.register("bolimlar", views.BolimViewSet)
 router.register("hisoblanganoyliklar", views.HisoblanganOylikViewSet)
 router.register("harajatlar", views.HarajatViewSet)
+router.register("hodimlar", views.HodimViewSet)
+router.register("tovaryuborishfilial", views.TovarYuborishFilialViewSet)
 
 
 

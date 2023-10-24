@@ -1,17 +1,20 @@
 from datetime import datetime
 
 from rest_framework import serializers
-from .models import (Apteka, Firma, FirmaSavdolari, Nasiyachi, Nasiya, KunlikSavdo, Bolim, HisoblanganOylik, Harajat)
+from .models import (Apteka, Firma, FirmaSavdolari, Nasiyachi, Nasiya, KunlikSavdo, Bolim, Hodim, HisoblanganOylik, Harajat, TovarYuborishFilial)
+
 
 class AptekaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Apteka
         fields = ['id', 'name', 'address', 'jami_qoldiq', 'last_update']
 
+
 class FirmaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Firma
         fields = ['id', 'name', 'masul_shaxs', 'phone', 'jami_haqi', 'haqdor', 'eng_yaqin_tolov_muddati']
+
 
 class FirmaSavdolariSerializer(serializers.ModelSerializer):
     class Meta:
@@ -50,17 +53,32 @@ class KunlikSavdoSerializer(serializers.ModelSerializer):
         model = KunlikSavdo
         fields = ['id', 'naqd_pul', 'terminal', 'card_to_card', 'inkassa', 'jami_summa', 'date']
 
+
 class BolimSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bolim
         fields = ['id', 'bolim_nomi']
+
+
+class HodimSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Hodim
+        fields = ['id', 'first_name', 'last_name', 'middle_name', 'apteka_id']
         
+
 class HisoblanganOylikSerializer(serializers.ModelSerializer):
     class Meta:
         model = HisoblanganOylik
         fields = ['id', 'hodim', 'oylik_tarixi', 'oylik']
 
+
 class HarajatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Harajat
-        fields = ['id', 'date', 'harajat_summasi']
+        fields = ['id', 'naqd_pul', 'plastik', 'izoh', 'hodim_id', 'apteka_id', 'jami_harajat']
+
+
+class TovarYuborishFilialSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TovarYuborishFilial
+        fields = ['id', 'tovar_summasi', "from_filial", "to_filial", "accepted"]

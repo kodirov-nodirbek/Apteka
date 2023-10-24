@@ -8,7 +8,7 @@ import json
 
 
 from . import serializers
-from .models import (Apteka, Firma, FirmaSavdolari, Nasiyachi, Nasiya, KunlikSavdo, Bolim, HisoblanganOylik, Harajat)
+from .models import (Apteka, Firma, FirmaSavdolari, Nasiyachi, Nasiya, KunlikSavdo, Bolim, Hodim, HisoblanganOylik, Harajat, TovarYuborishFilial)
 
 
 class AptekaViewSet(ModelViewSet):
@@ -148,6 +148,10 @@ class BolimViewSet(ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
 
+class HodimViewSet(ModelViewSet):
+    queryset = Hodim.objects.all()
+    serializer_class = serializers.HodimSerializer
+
 class HisoblanganOylikViewSet(ModelViewSet):
     queryset = HisoblanganOylik.objects.all()
     serializer_class = serializers.HisoblanganOylikSerializer
@@ -167,6 +171,11 @@ class HarajatViewSet(ModelViewSet):
     
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
+
+
+class TovarYuborishFilialViewSet(ModelViewSet):
+    queryset = TovarYuborishFilial.objects.all()
+    serializer_class = serializers.TovarYuborishFilialSerializer
 
 
 class HozirgiSana(APIView):
