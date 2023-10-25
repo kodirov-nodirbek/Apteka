@@ -3,7 +3,8 @@ from .models import (Apteka, Firma, FirmaSavdolari, Nasiyachi, Nasiya, KunlikSav
 
 @admin.register(Apteka)
 class AptekaAdmin(admin.ModelAdmin):
-    list_display = ("name", "address", "jami_qoldiq")
+    list_display = ("id", "name", "address", "jami_qoldiq")
+    list_display_links = ('id', 'name',)
     search_fields = ("name",)
 
 

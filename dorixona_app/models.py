@@ -1,21 +1,22 @@
 from decimal import Decimal
-from typing import Iterable, Optional
 from django.utils import timezone
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 
 
-class Apteka(models.Model):
+class Apteka(AbstractUser):
     class Meta:
         verbose_name = "Apteka"
         verbose_name_plural = "Aptekalar"
+    role = models.CharField(max_length=55)
     name = models.CharField(max_length=155)
     address = models.CharField(max_length=255)
-    jami_qoldiq = models.DecimalField(max_digits=14, decimal_places=0)
+    jami_qoldiq = models.DecimalField(max_digits=14, decimal_places=0, default=Decimal(0))
     last_update = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
+
 
 class Firma(models.Model):
     class Meta:
@@ -45,6 +46,7 @@ class Firma(models.Model):
     def eng_yaqin_tolov_muddati(self):
         firma_savdolari = FirmaSavdolari.objects.filter(firma_id=self).order_by('tolov_muddati')
         return firma_savdolari.first().tolov_muddati if firma_savdolari else 0
+
 
 class FirmaSavdolari(models.Model):
     class Meta:
@@ -89,6 +91,7 @@ class FirmaSavdolari(models.Model):
             self.tolangan_summalar.append(payment_data)
             self.save()
 
+
 class Nasiyachi(models.Model):
     class Meta:
         verbose_name = "Nasiyachi"
@@ -109,6 +112,7 @@ class Nasiyachi(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
     
+
 class Nasiya(models.Model):
     class Meta:
         verbose_name = "Nasiya"
@@ -156,11 +160,13 @@ class KunlikSavdo(models.Model):
     def jami_summa(self):
         return self.naqd_pul+self.terminal+self.card_to_card+self.inkassa
 
+
 class Bolim(models.Model):
     class Meta:
         verbose_name = "Bolim"
         verbose_name_plural = "Bolimlar"
     bolim_nomi = models.CharField(max_length=255)
+
 
 class Hodim(models.Model):
     class Meta:
@@ -176,12 +182,13 @@ class Hodim(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
+
 class HisoblanganOylik(models.Model):
     class Meta:
         verbose_name = "Hisoblanganoylik"
         verbose_name_plural = "Hisoblanganoyliklar"
     oylik = models.DecimalField(max_digits=14, decimal_places=0)
-    hodim = models.ForeignKey(to=User, on_delete=models.PROTECT)
+    hodim = models.ForeignKey(to=Hodim, on_delete=models.PROTECT)
     oylik_tarixi = models.JSONField(default=dict) 
 
 
@@ -198,6 +205,7 @@ class Harajat(models.Model):
 
     def jami_harajat(self):
         return self.naqd_pul+self.plastik
+  
     
 class TovarYuborishFilial(models.Model):
     tovar_summasi = models.DecimalField(max_digits=14, decimal_places=0)

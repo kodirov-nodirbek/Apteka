@@ -4,7 +4,6 @@ from rest_framework import filters, status
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.response import Response
-import json
 
 
 from . import serializers
@@ -176,6 +175,16 @@ class HarajatViewSet(ModelViewSet):
 class TovarYuborishFilialViewSet(ModelViewSet):
     queryset = TovarYuborishFilial.objects.all()
     serializer_class = serializers.TovarYuborishFilialSerializer
+    
+    def get_queryset(self):
+        queryset = TovarYuborishFilial.objects.all()
+        to_filial = self.request.query_params.get('to_filial')
+        accepted = self.request.query_params.get('accepted')
+        if to_filial and accepted:
+            queryset = queryset.filter(to_filial=to_filial).filter(accepted=bool(int(accepted)))
+        elif to_filial:
+            queryset = queryset.filter(to_filial=to_filial)
+        return queryset
 
 
 class HozirgiSana(APIView):

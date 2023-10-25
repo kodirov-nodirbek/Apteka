@@ -79,6 +79,13 @@ class HarajatSerializer(serializers.ModelSerializer):
 
 
 class TovarYuborishFilialSerializer(serializers.ModelSerializer):
+    to_filial = AptekaSerializer()
+
+    def filial(self):
+        qs = Apteka.objects.filter(id=self.to_filial)
+        serializer = AptekaSerializer(instance=qs, many=True)
+        return serializer.data
+    
     class Meta:
         model = TovarYuborishFilial
         fields = ['id', 'tovar_summasi', "from_filial", "to_filial", "accepted"]
