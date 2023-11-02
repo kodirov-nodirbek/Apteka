@@ -1,9 +1,9 @@
 from django.contrib import admin
-from .models import (Apteka, Firma, FirmaSavdolari, Nasiyachi, Nasiya, KunlikSavdo, Bolim, Hodim, HisoblanganOylik, Harajat, TovarYuborishFilial)
+from .models import (Apteka, Firma, FirmaSavdolari, Nasiyachi, Nasiya, KunlikSavdo, Bolim, BolimgaDori, Hodim, HisoblanganOylik, Harajat, TovarYuborishFilial)
 
 @admin.register(Apteka)
 class AptekaAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "address", "jami_qoldiq")
+    list_display = ("id", "name", "role", "address", "jami_qoldiq")
     list_display_links = ('id', 'name',)
     search_fields = ("name",)
 
@@ -40,8 +40,14 @@ class KunlikSavdoAdmin(admin.ModelAdmin):
 
 @admin.register(Bolim)
 class BolimAdmin(admin.ModelAdmin):
-    list_display = ("bolim_nomi", )
-    search_fields = ("bolim_nomi", )
+    list_display = ("name", )
+    search_fields = ("name", )
+
+
+@admin.register(BolimgaDori)
+class BolimAdmin(admin.ModelAdmin):
+    list_display = ("bolim_id", "apteka_id")
+    search_fields = ("bolim_id", )
 
 
 @admin.register(Hodim)
@@ -63,4 +69,4 @@ class HarajatAdmin(admin.ModelAdmin):
 
 @admin.register(TovarYuborishFilial)
 class TovarYuborishFilialAdmin(admin.ModelAdmin):
-    list_display = ("from_filial", "to_filial", "accepted", "date")
+    list_display = ("from_filial", "to_filial", "accepted")

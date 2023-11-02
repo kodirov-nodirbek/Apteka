@@ -1,7 +1,26 @@
 from datetime import datetime
 
 from rest_framework import serializers
-from .models import (Apteka, Firma, FirmaSavdolari, Nasiyachi, Nasiya, KunlikSavdo, Bolim, Hodim, HisoblanganOylik, Harajat, TovarYuborishFilial)
+from rest_framework_simplejwt.tokens import Token
+from .models import (Apteka, Firma, FirmaSavdolari, Nasiyachi, Nasiya, KunlikSavdo, TopshirilganPul, Bolim, BolimgaDori, Hodim, HisoblanganOylik, Harajat, TovarYuborishFilial)
+
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super(CustomTokenObtainPairSerializer, self).validate(attrs)
+        # Custom data you want to include
+        data.update({'id': self.user.id})
+        data.update({'role': self.user.role})
+        data.update({"token": data.pop('access')})
+        # and everything else you want to send in the response
+        return data
+    
+    @classmethod
+    def get_token(cls, user):
+        token =  super().get_token(user)
+        return token
 
 
 class AptekaSerializer(serializers.ModelSerializer):
@@ -25,6 +44,13 @@ class FirmaSavdolariSerializer(serializers.ModelSerializer):
         paid_amount = validated_data.get('paid_amount')
         payment_date = datetime.now()
         instance.add_payment(paid_amount, payment_date)
+
+    # def to_representation(self, instance):
+    #     data = super(FirmaSavdolariSerializer, self).to_representation(instance)
+    #     firma_savdolari = FirmaSavdolari.objects.filter(apteka_id=self.request.user)
+    #     data.update({"firma_savdolari": firma_savdolari})
+    #     return data
+
 
 class FirmaTolovPatch(serializers.Serializer):
     qaytarilgan_tovar_summasi = serializers.DecimalField(max_digits=14, decimal_places=0)
@@ -51,13 +77,25 @@ class NasiyaSerializer(serializers.ModelSerializer):
 class KunlikSavdoSerializer(serializers.ModelSerializer):
     class Meta:
         model = KunlikSavdo
-        fields = ['id', 'naqd_pul', 'terminal', 'card_to_card', 'inkassa', 'jami_summa', 'date']
+        fields = ['id', 'apteka_id', 'naqd_pul', 'terminal', 'card_to_card', 'inkassa', 'jami_summa', 'date']
+
+
+class TopshirilganPulSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TopshirilganPul
+        fields = "__all__"
 
 
 class BolimSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bolim
-        fields = ['id', 'bolim_nomi']
+        fields = "__all__"
+
+
+class BolimgaDoriSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BolimgaDori
+        fields = "__all__"
 
 
 class HodimSerializer(serializers.ModelSerializer):
@@ -79,13 +117,6 @@ class HarajatSerializer(serializers.ModelSerializer):
 
 
 class TovarYuborishFilialSerializer(serializers.ModelSerializer):
-    to_filial = AptekaSerializer()
-
-    def filial(self):
-        qs = Apteka.objects.filter(id=self.to_filial)
-        serializer = AptekaSerializer(instance=qs, many=True)
-        return serializer.data
-    
     class Meta:
         model = TovarYuborishFilial
-        fields = ['id', 'tovar_summasi', "from_filial", "to_filial", "accepted"]
+        fields = ['id', 'tovar_summasi', 'from_filial', 'apteka', 'to_filial', 'accepted']

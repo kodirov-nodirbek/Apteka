@@ -1,13 +1,12 @@
 from datetime import datetime
-from django_filters.rest_framework import DjangoFilterBackend, FilterSet
 from rest_framework import filters, status
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
+from rest_framework.permissions import IsAuthenticated
 
 from . import serializers
-from .models import (Apteka, Firma, FirmaSavdolari, Nasiyachi, Nasiya, KunlikSavdo, Bolim, Hodim, HisoblanganOylik, Harajat, TovarYuborishFilial)
+from .models import (Apteka, Firma, FirmaSavdolari, Nasiyachi, Nasiya, KunlikSavdo, TopshirilganPul, Bolim, BolimgaDori, Hodim, HisoblanganOylik, Harajat, TovarYuborishFilial)
 
 
 class AptekaViewSet(ModelViewSet):
@@ -28,13 +27,13 @@ class FirmaViewSet(ModelViewSet):
     filter_backends = [filters.SearchFilter]
     search_fields = ['name', 'masul_shaxs', 'phone']
     
-    def get_queryset(self):
-        queryset = Firma.objects.all()
-        firma_id = self.request.query_params.get('id')
-        if firma_id:
-            queryset = queryset.filter(firma_id=firma_id)
+    # def get_queryset(self):
+    #     queryset = Firma.objects.all()
+    #     firma_id = self.request.query_params.get('id')
+    #     if firma_id:
+    #         queryset = queryset.filter(firma_id=firma_id)
         
-        return queryset
+    #     return queryset
 
     def partial_update(self, request, *args, **kwargs):
         firma_object = self.get_object()
@@ -75,6 +74,7 @@ class FirmaViewSet(ModelViewSet):
 class FirmaSavdolariViewSet(ModelViewSet):
     serializer_class = serializers.FirmaSavdolariSerializer
     filter_backends = [filters.SearchFilter]
+    permission_classes = [IsAuthenticated]
     search_fields = ['shartnoma_raqami', 'harid_sanasi', 'tolov_muddati']
 
     def get_queryset(self):
@@ -99,7 +99,7 @@ class FirmaSavdolariViewSet(ModelViewSet):
 class NasiyachiViewSet(ModelViewSet):
     queryset = Nasiyachi.objects.all()
     serializer_class = serializers.NasiyachiSerializer
-    
+    permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     search_fields = ['first_name', 'last_name', 'middle_name', 'phone', 'passport']
 
@@ -113,7 +113,8 @@ class NasiyachiViewSet(ModelViewSet):
 class NasiyaViewSet(ModelViewSet):
     queryset = Nasiya.objects.all()
     serializer_class = serializers.NasiyaSerializer
- 
+    permission_classes = [IsAuthenticated]
+
     def get_serializer_context(self):
         return {'request': self.request}
     
@@ -125,18 +126,22 @@ class NasiyaViewSet(ModelViewSet):
         nasiyachi_id = self.request.query_params.get('nasiyachi_id')
         if nasiyachi_id:
             queryset = queryset.filter(nasiyachi_id=nasiyachi_id)
+        # else:
+        #     queryset.filter(apteka_id_id=self.request.user.id)
         return queryset
     
 class KunlikSavdoViewSet(ModelViewSet):
     queryset = KunlikSavdo.objects.all()
     serializer_class = serializers.KunlikSavdoSerializer
- 
+    permission_classes = [IsAuthenticated]
+
     def get_serializer_context(self):
         return {'request': self.request}
     
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
     
+
 class BolimViewSet(ModelViewSet):
     queryset = Bolim.objects.all()
     serializer_class = serializers.BolimSerializer
@@ -147,9 +152,23 @@ class BolimViewSet(ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
 
+
+class BolimgaDoriViewSet(ModelViewSet):
+    queryset = BolimgaDori.objects.all()
+    serializer_class = serializers.BolimgaDoriSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_serializer_context(self):
+        return {'request': self.request}
+    
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
+
+
 class HodimViewSet(ModelViewSet):
     queryset = Hodim.objects.all()
     serializer_class = serializers.HodimSerializer
+
 
 class HisoblanganOylikViewSet(ModelViewSet):
     queryset = HisoblanganOylik.objects.all()
@@ -160,6 +179,7 @@ class HisoblanganOylikViewSet(ModelViewSet):
     
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
+    
     
 class HarajatViewSet(ModelViewSet):
     queryset = Harajat.objects.all()
@@ -175,6 +195,7 @@ class HarajatViewSet(ModelViewSet):
 class TovarYuborishFilialViewSet(ModelViewSet):
     queryset = TovarYuborishFilial.objects.all()
     serializer_class = serializers.TovarYuborishFilialSerializer
+    permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
         queryset = TovarYuborishFilial.objects.all()
@@ -185,6 +206,15 @@ class TovarYuborishFilialViewSet(ModelViewSet):
         elif to_filial:
             queryset = queryset.filter(to_filial=to_filial)
         return queryset
+    
+    def get_name(self):
+        return self.name
+
+
+class TopshirilganPulViewSet(ModelViewSet):
+    queryset = TopshirilganPul.objects.all()
+    serializer_class = serializers.TopshirilganPulSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class HozirgiSana(APIView):
@@ -196,3 +226,4 @@ class HozirgiSana(APIView):
             "daqiqa": str(today)[14:16]
         }
         return Response(d)
+    

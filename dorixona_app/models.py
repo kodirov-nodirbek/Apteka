@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import Iterable, Optional
 from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import AbstractUser
@@ -150,9 +151,9 @@ class KunlikSavdo(models.Model):
     class Meta:
         verbose_name = "Kunlik savdo"
         verbose_name_plural = "Kunlik savdolar"
-    naqd_pul = models.DecimalField(max_digits=14, decimal_places=0)
-    terminal = models.DecimalField(max_digits=14, decimal_places=0)
     card_to_card = models.DecimalField(max_digits=14, decimal_places=0)
+    terminal = models.DecimalField(max_digits=14, decimal_places=0)
+    naqd_pul = models.DecimalField(max_digits=14, decimal_places=0)
     inkassa = models.DecimalField(max_digits=14, decimal_places=0)
     apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
@@ -160,13 +161,61 @@ class KunlikSavdo(models.Model):
     def jami_summa(self):
         return self.naqd_pul+self.terminal+self.card_to_card+self.inkassa
 
+    def decrease(self):
+        return self.terminal+self.inkassa
+    
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        apteka = Apteka.objects.get(id=self.apteka_id.id)
+        apteka.jami_qoldiq-=Decimal(self.decrease())
+        apteka.save()
+        return super().save(force_insert, force_update, using, update_fields)
+
+
+class TopshirilganPul(models.Model):
+    naqd_pul = models.DecimalField(max_digits=14, decimal_places=0)
+    card_to_card = models.DecimalField(max_digits=14, decimal_places=0)
+    apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
+    data = models.DateTimeField(auto_now_add=True)
+
+    def jami(self):
+        return self.naqd_pul+self.card_to_card
+    
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        apteka = Apteka.objects.get(id=self.apteka_id.id)
+        apteka.jami_qoldiq-=Decimal(self.jami())
+        apteka.save()
+        return super().save(force_insert, force_update, using, update_fields)
+
 
 class Bolim(models.Model):
     class Meta:
         verbose_name = "Bolim"
         verbose_name_plural = "Bolimlar"
-    bolim_nomi = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
+    masul_shaxs = models.CharField(max_length=155)
+    tel = models.CharField(max_length=55)
+    manzil = models.CharField(max_length=450)
 
+    def __str__(self):
+        return self.name
+
+class BolimgaDori(models.Model):
+    class Meta:
+        verbose_name = "BolimgaDori"
+        verbose_name_plural = "BolimgaDorilar"
+    summa = models.DecimalField(max_digits=14, decimal_places=0)
+    apteka_id = models.ForeignKey(Apteka, on_delete=models.CASCADE)
+    bolim_id = models.ForeignKey(Bolim, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.bolim_id.name
+    
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        apteka = Apteka.objects.get(id=self.apteka_id.id)
+        apteka.jami_qoldiq-=self.summa
+        apteka.save()
+        return super().save(force_insert, force_update, using, update_fields)
 
 class Hodim(models.Model):
     class Meta:
@@ -209,16 +258,22 @@ class Harajat(models.Model):
     
 class TovarYuborishFilial(models.Model):
     tovar_summasi = models.DecimalField(max_digits=14, decimal_places=0)
-    from_filial = models.PositiveIntegerField()
-    to_filial = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
+    from_filial = models.ForeignKey(Apteka, on_delete=models.CASCADE, related_name='outgoing_tovar_filials')
+    to_filial = models.PositiveIntegerField()
     accepted = models.BooleanField(default=False)
-    date = models.DateTimeField(auto_now_add=True)
+    sent_time = models.DateTimeField(auto_now_add=True)
+    accepted_time = models.DateTimeField(auto_now=True)
 
+    def apteka(self):
+        return self.from_filial.name
+    
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         if self.accepted:
-            from_filial = Apteka.objects.get(id=self.from_filial)
+            to_filial = Apteka.objects.get(id=self.to_filial)
+            from_filial = Apteka.objects.get(id=self.from_filial.id)
             from_filial.jami_qoldiq-=self.tovar_summasi
-            self.to_filial.jami_qoldiq+=self.tovar_summasi
+            to_filial.jami_qoldiq+=self.tovar_summasi
             from_filial.save()
-            self.to_filial.save()
+            to_filial.save()
         super(TovarYuborishFilial, self).save(force_insert=False, force_update=False, using=None, update_fields=None)
+
