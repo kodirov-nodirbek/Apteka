@@ -3,8 +3,9 @@ from .models import (Apteka, Firma, FirmaSavdolari, Nasiyachi, Nasiya, KunlikSav
 
 @admin.register(Apteka)
 class AptekaAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "role", "address", "jami_qoldiq")
+    list_display = ("id", "username", "name", "role", "address", "jami_qoldiq")
     list_display_links = ('id', 'name',)
+    readonly_fields = ("password",)
     search_fields = ("name",)
 
 
@@ -34,7 +35,7 @@ class NasiyaAdmin(admin.ModelAdmin):
 
 @admin.register(KunlikSavdo)
 class KunlikSavdoAdmin(admin.ModelAdmin):
-    list_display = ("date", "jami_summa")
+    list_display = ("apteka_id", "jami_summa", "date")
     search_fields = ("date",)
 
 

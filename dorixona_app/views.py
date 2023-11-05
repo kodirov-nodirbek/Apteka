@@ -135,9 +135,25 @@ class KunlikSavdoViewSet(ModelViewSet):
     serializer_class = serializers.KunlikSavdoSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_serializer_context(self):
-        return {'request': self.request}
-    
+    def get_queryset(self):
+        queryset =  KunlikSavdo.objects.all().order_by('-date')
+        date = self.request.query_params.get('date')
+        apteka_id = self.request.query_params.get('apteka_id')
+        from_date = self.request.query_params.get('from_date')
+        to_date = self.request.query_params.get('to_date')
+        # print("-------------------", apteka_id)
+        # print("-------------------", date)
+        if date and apteka_id:
+            queryset = queryset.filter(date=date, apteka_id__id=apteka_id)
+        elif apteka_id:
+            queryset = queryset.filter(apteka_id=apteka_id)
+        elif date:
+            queryset = queryset.filter(date=date)
+        elif from_date and to_date:
+            print('range ishladi')
+            queryset = queryset.filter(date__range=[from_date, to_date])
+            
+        return queryset
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
     

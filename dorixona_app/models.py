@@ -53,7 +53,7 @@ class FirmaSavdolari(models.Model):
     class Meta:
         verbose_name = "Firma savdosi"
         verbose_name_plural = "Firma savdolari"
-    
+
     apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
     firma_id = models.ForeignKey(to=Firma, on_delete=models.CASCADE)
     shartnoma_raqami = models.CharField(max_length=50)
@@ -105,7 +105,6 @@ class Nasiyachi(models.Model):
     passport = models.CharField(max_length=22, null=True)
     created_at = models.DateField(auto_now=True)
     apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
-
 
     def jami_qarzi(self):
         return sum(nasiya.qolgan_qarz() for nasiya in self.nasiya_set.filter())
@@ -176,6 +175,7 @@ class TopshirilganPul(models.Model):
     card_to_card = models.DecimalField(max_digits=14, decimal_places=0)
     apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
     data = models.DateTimeField(auto_now_add=True)
+    qabul_qilindi = models.BooleanField(default=False)
 
     def jami(self):
         return self.naqd_pul+self.card_to_card

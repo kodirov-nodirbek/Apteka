@@ -26,7 +26,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 class AptekaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Apteka
-        fields = ['id', 'name', 'address', 'jami_qoldiq', 'last_update']
+        fields = ['id', 'name', 'role', 'address', 'jami_qoldiq', 'last_update']
 
 
 class FirmaSerializer(serializers.ModelSerializer):
