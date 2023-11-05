@@ -29,7 +29,7 @@ DEBUG = True
 
 CORS_ORIGIN_ALLOW_ALL = True
 
-ALLOWED_HOSTS = ['127.0.0.1', "192.168.1.25", "localhost", "kodirov.pythonanywhere.com"]
+ALLOWED_HOSTS = ['127.0.0.1', "192.168.1.25", "localhost", "kodirov.pythonanywhere.com", "kodirov97.pythonanywhere.com"]
 
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1", 
