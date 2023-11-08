@@ -1,5 +1,4 @@
 from decimal import Decimal
-from typing import Iterable, Optional
 from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import AbstractUser
@@ -57,7 +56,7 @@ class FirmaSavdolari(models.Model):
     apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
     firma_id = models.ForeignKey(to=Firma, on_delete=models.CASCADE)
     shartnoma_raqami = models.CharField(max_length=50)
-    harid_sanasi = models.DateTimeField(auto_now=True)
+    harid_sanasi = models.DateTimeField(auto_now_add=True)
     tolov_muddati = models.DateField()
     tolangan_summalar = models.JSONField(default=list, null=True)
     tan_narxi = models.DecimalField(max_digits=14, decimal_places=0)
@@ -103,7 +102,7 @@ class Nasiyachi(models.Model):
     phone = models.CharField(max_length=155)
     address = models.CharField(max_length=155)
     passport = models.CharField(max_length=22, null=True)
-    created_at = models.DateField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
 
     def jami_qarzi(self):
@@ -120,8 +119,7 @@ class Nasiya(models.Model):
     chek_raqami = models.PositiveBigIntegerField()
     nasiya_summasi = models.DecimalField(max_digits=14, decimal_places=0)
     tolangan_summalar = models.JSONField(default=list, null=True)
-    date = models.DateField(auto_now=True)
-    time = models.TimeField(auto_now=True)
+    date = models.DateTimeField(auto_now_add=True)
     tolov_muddati = models.DateField()
     nasiyachi_id = models.ForeignKey(to=Nasiyachi, on_delete=models.CASCADE)
     apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
@@ -174,8 +172,8 @@ class TopshirilganPul(models.Model):
     naqd_pul = models.DecimalField(max_digits=14, decimal_places=0)
     card_to_card = models.DecimalField(max_digits=14, decimal_places=0)
     apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
-    data = models.DateTimeField(auto_now_add=True)
     qabul_qilindi = models.BooleanField(default=False)
+    date = models.DateTimeField(auto_now_add=True)
 
     def jami(self):
         return self.naqd_pul+self.card_to_card
@@ -217,6 +215,7 @@ class BolimgaDori(models.Model):
         apteka.save()
         return super().save(force_insert, force_update, using, update_fields)
 
+
 class Hodim(models.Model):
     class Meta:
         verbose_name = "Hodim"
@@ -250,7 +249,7 @@ class Harajat(models.Model):
     izoh = models.TextField()
     hodim_id = models.ForeignKey(to=Hodim, on_delete=models.CASCADE)
     apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
-    date = models.DateTimeField(auto_now=True)
+    date = models.DateTimeField(auto_now_add=True)
 
     def jami_harajat(self):
         return self.naqd_pul+self.plastik
@@ -262,7 +261,7 @@ class TovarYuborishFilial(models.Model):
     to_filial = models.PositiveIntegerField()
     accepted = models.BooleanField(default=False)
     sent_time = models.DateTimeField(auto_now_add=True)
-    accepted_time = models.DateTimeField(auto_now=True)
+    accepted_time = models.DateTimeField(null=True)
 
     def apteka(self):
         return self.from_filial.name

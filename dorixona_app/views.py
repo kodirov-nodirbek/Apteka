@@ -1,10 +1,12 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from rest_framework import filters, status
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend
 
+from .filters import TopshirilganPulFilter, KunlikSavdoFilter, FirmaSavdolariFilter, NasiyachiFilter, NasiyaFilter, HarajatFilter, TovarYuborishFilialFilter
 from . import serializers
 from .models import (Apteka, Firma, FirmaSavdolari, Nasiyachi, Nasiya, KunlikSavdo, TopshirilganPul, Bolim, BolimgaDori, Hodim, HisoblanganOylik, Harajat, TovarYuborishFilial)
 
@@ -12,7 +14,8 @@ from .models import (Apteka, Firma, FirmaSavdolari, Nasiyachi, Nasiya, KunlikSav
 class AptekaViewSet(ModelViewSet):
     queryset = Apteka.objects.all()
     serializer_class = serializers.AptekaSerializer
- 
+    permission_classes = [IsAuthenticated]
+
     def get_serializer_context(self):
         return {'request': self.request}
     
@@ -23,17 +26,10 @@ class AptekaViewSet(ModelViewSet):
 class FirmaViewSet(ModelViewSet):
     queryset = Firma.objects.all()
     serializer_class = serializers.FirmaSerializer
- 
+    permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     search_fields = ['name', 'masul_shaxs', 'phone']
     
-    # def get_queryset(self):
-    #     queryset = Firma.objects.all()
-    #     firma_id = self.request.query_params.get('id')
-    #     if firma_id:
-    #         queryset = queryset.filter(firma_id=firma_id)
-        
-    #     return queryset
 
     def partial_update(self, request, *args, **kwargs):
         firma_object = self.get_object()
@@ -72,23 +68,11 @@ class FirmaViewSet(ModelViewSet):
     
 
 class FirmaSavdolariViewSet(ModelViewSet):
+    queryset = FirmaSavdolari.objects.all()
     serializer_class = serializers.FirmaSavdolariSerializer
-    filter_backends = [filters.SearchFilter]
     permission_classes = [IsAuthenticated]
-    search_fields = ['shartnoma_raqami', 'harid_sanasi', 'tolov_muddati']
-
-    def get_queryset(self):
-        queryset = FirmaSavdolari.objects.all().order_by("tolov_muddati")
-        firma_id = self.request.query_params.get('firma_id')
-        shartnoma_raqami = self.request.query_params.get('shartnoma_raqami')
-        if firma_id and shartnoma_raqami:
-            queryset = queryset.filter(firma_id=firma_id, shartnoma_raqami=shartnoma_raqami)
-        elif firma_id:
-            queryset = queryset.filter(firma_id=firma_id)
-        elif shartnoma_raqami:
-            queryset = queryset.filter(shartnoma_raqami=shartnoma_raqami)
-
-        return queryset
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = FirmaSavdolariFilter
 
     def perform_create(self, serializer):
         serializer.save()
@@ -100,73 +84,32 @@ class NasiyachiViewSet(ModelViewSet):
     queryset = Nasiyachi.objects.all()
     serializer_class = serializers.NasiyachiSerializer
     permission_classes = [IsAuthenticated]
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['first_name', 'last_name', 'middle_name', 'phone', 'passport']
-
-    def get_serializer_context(self):
-        return {'request': self.request}
-    
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_class = NasiyachiFilter
+    search_fields = ['first_name', 'last_name', 'passport', 'phone', 'chek_raqami']
     
 
 class NasiyaViewSet(ModelViewSet):
-    queryset = Nasiya.objects.all()
+    queryset = Nasiya.objects.all().order_by('tolov_muddati')
     serializer_class = serializers.NasiyaSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_class = NasiyaFilter
+    search_fields = ['']
 
-    def get_serializer_context(self):
-        return {'request': self.request}
-    
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
-    
-    def get_queryset(self):
-        queryset = Nasiya.objects.all()
-        nasiyachi_id = self.request.query_params.get('nasiyachi_id')
-        if nasiyachi_id:
-            queryset = queryset.filter(nasiyachi_id=nasiyachi_id)
-        # else:
-        #     queryset.filter(apteka_id_id=self.request.user.id)
-        return queryset
     
 class KunlikSavdoViewSet(ModelViewSet):
     queryset = KunlikSavdo.objects.all()
     serializer_class = serializers.KunlikSavdoSerializer
     permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        queryset =  KunlikSavdo.objects.all().order_by('-date')
-        date = self.request.query_params.get('date')
-        apteka_id = self.request.query_params.get('apteka_id')
-        from_date = self.request.query_params.get('from_date')
-        to_date = self.request.query_params.get('to_date')
-        # print("-------------------", apteka_id)
-        # print("-------------------", date)
-        if date and apteka_id:
-            queryset = queryset.filter(date=date, apteka_id__id=apteka_id)
-        elif apteka_id:
-            queryset = queryset.filter(apteka_id=apteka_id)
-        elif date:
-            queryset = queryset.filter(date=date)
-        elif from_date and to_date:
-            print('range ishladi')
-            queryset = queryset.filter(date__range=[from_date, to_date])
-            
-        return queryset
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = KunlikSavdoFilter
     
 
 class BolimViewSet(ModelViewSet):
     queryset = Bolim.objects.all()
     serializer_class = serializers.BolimSerializer
- 
-    def get_serializer_context(self):
-        return {'request': self.request}
-    
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
+    permission_classes = [IsAuthenticated]
 
 
 class BolimgaDoriViewSet(ModelViewSet):
@@ -184,12 +127,14 @@ class BolimgaDoriViewSet(ModelViewSet):
 class HodimViewSet(ModelViewSet):
     queryset = Hodim.objects.all()
     serializer_class = serializers.HodimSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class HisoblanganOylikViewSet(ModelViewSet):
     queryset = HisoblanganOylik.objects.all()
     serializer_class = serializers.HisoblanganOylikSerializer
- 
+    permission_classes = [IsAuthenticated]
+
     def get_serializer_context(self):
         return {'request': self.request}
     
@@ -200,37 +145,28 @@ class HisoblanganOylikViewSet(ModelViewSet):
 class HarajatViewSet(ModelViewSet):
     queryset = Harajat.objects.all()
     serializer_class = serializers.HarajatSerializer
- 
-    def get_serializer_context(self):
-        return {'request': self.request}
-    
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = HarajatFilter
 
 
 class TovarYuborishFilialViewSet(ModelViewSet):
     queryset = TovarYuborishFilial.objects.all()
     serializer_class = serializers.TovarYuborishFilialSerializer
     permission_classes = [IsAuthenticated]
-    
-    def get_queryset(self):
-        queryset = TovarYuborishFilial.objects.all()
-        to_filial = self.request.query_params.get('to_filial')
-        accepted = self.request.query_params.get('accepted')
-        if to_filial and accepted:
-            queryset = queryset.filter(to_filial=to_filial).filter(accepted=bool(int(accepted)))
-        elif to_filial:
-            queryset = queryset.filter(to_filial=to_filial)
-        return queryset
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = TovarYuborishFilialFilter
     
     def get_name(self):
         return self.name
-
+    
 
 class TopshirilganPulViewSet(ModelViewSet):
-    queryset = TopshirilganPul.objects.all()
+    queryset = TopshirilganPul.objects.all().order_by('-date')
     serializer_class = serializers.TopshirilganPulSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = TopshirilganPulFilter
 
 
 class HozirgiSana(APIView):
@@ -242,4 +178,3 @@ class HozirgiSana(APIView):
             "daqiqa": str(today)[14:16]
         }
         return Response(d)
-    
