@@ -66,7 +66,7 @@ class NasiyachiSerializer(serializers.ModelSerializer):
 class NasiyaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Nasiya
-        fields = ['id', 'chek_raqami', 'date', 'time', 'nasiya_summasi', 'tolangan_summalar', 'jami_tolangan_summa', 'tolov_muddati', 'tolandi', 'nasiyachi_id', 'apteka_id']
+        fields = ['id', 'chek_raqami', 'date', 'nasiya_summasi', 'tolangan_summalar', 'jami_tolangan_summa', 'tolov_muddati', 'tolandi', 'nasiyachi_id', 'apteka_id']
     
     tolandi = serializers.SerializerMethodField()
 
