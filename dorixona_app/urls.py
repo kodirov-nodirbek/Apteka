@@ -10,13 +10,14 @@ router.register(r'firma_savdolari', views.FirmaSavdolariViewSet, basename='firma
 router.register("nasiyachilar", views.NasiyachiViewSet)
 router.register("nasiyalar", views.NasiyaViewSet)
 router.register("kunliksavdo", views.KunlikSavdoViewSet)
-router.register("topshirilganpullar", views.TopshirilganPulViewSet)
 router.register("bolimlar", views.BolimViewSet)
 router.register("bolimgadorilar", views.BolimgaDoriViewSet)
 router.register("hisoblanganoyliklar", views.HisoblanganOylikViewSet)
+router.register("oliganoyliklar", views.OlinganOylikViewSet)
 router.register("harajatlar", views.HarajatViewSet)
 router.register("hodimlar", views.HodimViewSet)
 router.register(r"tovaryuborishfilial", views.TovarYuborishFilialViewSet, basename="tovaryuborishfilial")
+router.register(r"kirimdorilar", views.KirimDorilarViewSet, basename="kirimdorilar")
 
 
 urlpatterns = [

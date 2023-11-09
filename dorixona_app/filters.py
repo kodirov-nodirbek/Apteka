@@ -1,5 +1,5 @@
 import django_filters
-from .models import TopshirilganPul, KunlikSavdo, FirmaSavdolari, Nasiyachi, Nasiya, Harajat, TovarYuborishFilial
+from .models import KunlikSavdo, FirmaSavdolari, Nasiyachi, Nasiya, Harajat, TovarYuborishFilial
 
 
 class FirmaSavdolariFilter(django_filters.FilterSet):
@@ -37,21 +37,10 @@ class KunlikSavdoFilter(django_filters.FilterSet):
     apteka_id = django_filters.NumberFilter(field_name='apteka_id', lookup_expr='exact')
     from_date = django_filters.DateFilter(field_name='date', lookup_expr='date__gte')
     to_date = django_filters.DateFilter(field_name='date', lookup_expr='date__lte')
+    qabul_qildi = django_filters.BooleanFilter(field_name='qabul_qildi', lookup_expr='exact')
 
     class Meta:
         model = KunlikSavdo
-        fields = []
-
-
-class TopshirilganPulFilter(django_filters.FilterSet):
-    date = django_filters.DateFilter(field_name='date', lookup_expr='date')
-    apteka_id = django_filters.NumberFilter(field_name='apteka_id', lookup_expr='exact')
-    qabul_qilindi = django_filters.BooleanFilter(field_name='qabul_qilindi', lookup_expr='exact')
-    from_date = django_filters.DateFilter(field_name='date', lookup_expr='date__gte')
-    to_date = django_filters.DateFilter(field_name='date', lookup_expr='date__lte')
-
-    class Meta:
-        model = TopshirilganPul
         fields = []
 
 

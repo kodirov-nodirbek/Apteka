@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from rest_framework import filters, status
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
@@ -6,9 +6,9 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 
-from .filters import TopshirilganPulFilter, KunlikSavdoFilter, FirmaSavdolariFilter, NasiyachiFilter, NasiyaFilter, HarajatFilter, TovarYuborishFilialFilter
+from .filters import KunlikSavdoFilter, FirmaSavdolariFilter, NasiyachiFilter, NasiyaFilter, HarajatFilter, TovarYuborishFilialFilter
 from . import serializers
-from .models import (Apteka, Firma, FirmaSavdolari, Nasiyachi, Nasiya, KunlikSavdo, TopshirilganPul, Bolim, BolimgaDori, Hodim, HisoblanganOylik, Harajat, TovarYuborishFilial)
+from .models import (Apteka, Firma, FirmaSavdolari, Nasiyachi, Nasiya, KunlikSavdo, Bolim, BolimgaDori, Hodim, HisoblanganOylik, Harajat, TovarYuborishFilial, KirimDorilar, OlinganOylik)
 
 
 class AptekaViewSet(ModelViewSet):
@@ -30,15 +30,19 @@ class FirmaViewSet(ModelViewSet):
     filter_backends = [filters.SearchFilter]
     search_fields = ['name', 'masul_shaxs', 'phone']
     
-
     def partial_update(self, request, *args, **kwargs):
         firma_object = self.get_object()
         savdolar = [savdo for savdo in FirmaSavdolari.objects.filter(firma_id=firma_object.id).order_by("tolov_muddati") if savdo.tolandi()==False]
         data = request.data
-        tolov = data.get("tolov", None)
+        naqd = data.get("naqd", 0)
+        plastik = data.get("plastik", 0)
         apteka_id = data.get("apteka_id", None)
+        tolov = naqd+plastik
+        print("naqd", naqd)
+        print("plastik", plastik)
+        print('jami', tolov)
         for savdo in savdolar:
-            if tolov and apteka_id and savdo.jami_qarz()>=tolov:
+            if tolov!=0 and apteka_id and savdo.jami_qarz()>=tolov:
                 pay = {
                     "summa": int(tolov),
                     'sana': str(datetime.now()),
@@ -47,7 +51,7 @@ class FirmaViewSet(ModelViewSet):
                 savdo.tolangan_summalar.append(pay)
                 savdo.save()
                 break
-            elif tolov and apteka_id and savdo.jami_qarz()<tolov:
+            elif tolov!=0 and apteka_id and savdo.jami_qarz()<tolov:
                 pay = {
                     "summa": int(savdo.jami_qarz()),
                     'sana': str(datetime.now()),
@@ -62,7 +66,8 @@ class FirmaViewSet(ModelViewSet):
         firma_object.phone = data.get("phone", firma_object.phone)
 
         firma_object.save()
-
+        if apteka_id and tolov!=0:
+            Harajat.objects.create(apteka_id=Apteka.objects.get(id=apteka_id), naqd_pul=naqd, plastik=plastik, firma_uchun=True, izoh=f"{firma_object.id}, '{firma_object.name}' firmasi uchun")
         serializer = serializers.FirmaSerializer(firma_object)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
@@ -99,7 +104,7 @@ class NasiyaViewSet(ModelViewSet):
 
     
 class KunlikSavdoViewSet(ModelViewSet):
-    queryset = KunlikSavdo.objects.all()
+    queryset = KunlikSavdo.objects.all().order_by('-date')
     serializer_class = serializers.KunlikSavdoSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
@@ -140,10 +145,16 @@ class HisoblanganOylikViewSet(ModelViewSet):
     
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
-    
+
+
+class OlinganOylikViewSet(ModelViewSet):
+    queryset = OlinganOylik.objects.all()
+    serializer_class = serializers.OlinganOylikSerializer
+    permission_classes = [IsAuthenticated]
+
     
 class HarajatViewSet(ModelViewSet):
-    queryset = Harajat.objects.all()
+    queryset = Harajat.objects.all().order_by('-date')
     serializer_class = serializers.HarajatSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
@@ -159,14 +170,12 @@ class TovarYuborishFilialViewSet(ModelViewSet):
     
     def get_name(self):
         return self.name
-    
 
-class TopshirilganPulViewSet(ModelViewSet):
-    queryset = TopshirilganPul.objects.all().order_by('-date')
-    serializer_class = serializers.TopshirilganPulSerializer
+
+class KirimDorilarViewSet(ModelViewSet):
+    queryset = KirimDorilar.objects.all().order_by('-date')
+    serializer_class = serializers.KirimDorilarSerializer
     permission_classes = [IsAuthenticated]
-    filter_backends = [DjangoFilterBackend]
-    filterset_class = TopshirilganPulFilter
 
 
 class HozirgiSana(APIView):

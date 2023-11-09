@@ -2,7 +2,7 @@ from datetime import datetime
 
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import Token
-from .models import (Apteka, Firma, FirmaSavdolari, Nasiyachi, Nasiya, KunlikSavdo, TopshirilganPul, Bolim, BolimgaDori, Hodim, HisoblanganOylik, Harajat, TovarYuborishFilial)
+from .models import (Apteka, Firma, FirmaSavdolari, Nasiyachi, Nasiya, KunlikSavdo, Bolim, BolimgaDori, Hodim, HisoblanganOylik, Harajat, TovarYuborishFilial, KirimDorilar, OlinganOylik)
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -26,7 +26,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 class AptekaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Apteka
-        fields = ['id', 'name', 'role', 'address', 'jami_qoldiq', 'last_update']
+        fields = ['id', 'name', 'role', 'address', 'jami_qoldiq', 'last_update', 'get_nasiyalar', 'topshiriladigan_pul']
 
 
 class FirmaSerializer(serializers.ModelSerializer):
@@ -66,7 +66,7 @@ class NasiyachiSerializer(serializers.ModelSerializer):
 class NasiyaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Nasiya
-        fields = ['id', 'chek_raqami', 'date', 'nasiya_summasi', 'tolangan_summalar', 'jami_tolangan_summa', 'tolov_muddati', 'tolandi', 'nasiyachi_id', 'apteka_id']
+        fields = ['id', 'chek_raqami', 'date', 'nasiya_summasi', 'tolangan_summalar', 'jami_tolangan_summa', 'tolov_muddati', 'tolandi', 'nasiyachi_id', 'apteka_id', 'qolgan_qarz']
     
     tolandi = serializers.SerializerMethodField()
 
@@ -77,13 +77,7 @@ class NasiyaSerializer(serializers.ModelSerializer):
 class KunlikSavdoSerializer(serializers.ModelSerializer):
     class Meta:
         model = KunlikSavdo
-        fields = ['id', 'apteka_id', 'naqd_pul', 'terminal', 'card_to_card', 'inkassa', 'jami_summa', 'date']
-
-
-class TopshirilganPulSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TopshirilganPul
-        fields = "__all__"
+        fields = ['id', 'apteka_id', 'naqd_pul', 'terminal', 'card_to_card', 'inkassa', 'jami_summa', 'date', 'topshirishga_pul', 'qabul_qildi']
 
 
 class BolimSerializer(serializers.ModelSerializer):
@@ -101,22 +95,34 @@ class BolimgaDoriSerializer(serializers.ModelSerializer):
 class HodimSerializer(serializers.ModelSerializer):
     class Meta:
         model = Hodim
-        fields = ['id', 'first_name', 'last_name', 'middle_name', 'apteka_id']
+        fields = ['id', 'first_name', 'last_name', 'middle_name', 'apteka_id', 'active', 'created_at', 'ish_haqi_kunlik', 'lavozimi']
         
 
 class HisoblanganOylikSerializer(serializers.ModelSerializer):
     class Meta:
         model = HisoblanganOylik
-        fields = ['id', 'hodim', 'oylik_tarixi', 'oylik']
+        fields = ['id', 'hodim', 'hisoblangan_oylik', 'qolga_tegishi', 'ishlagan_kunlar', 'date']
+
+
+class OlinganOylikSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OlinganOylik
+        fields = "__all__"
 
 
 class HarajatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Harajat
-        fields = ['id', 'naqd_pul', 'plastik', 'izoh', 'hodim_id', 'apteka_id', 'jami_harajat', 'date']
+        fields = ['id', 'naqd_pul', 'plastik', 'izoh', 'apteka_id', 'jami_harajat', 'date', 'firma_uchun']
 
 
 class TovarYuborishFilialSerializer(serializers.ModelSerializer):
     class Meta:
         model = TovarYuborishFilial
         fields = ['id', 'tovar_summasi', 'from_filial', 'apteka', 'to_filial', 'accepted', 'sent_time', 'accepted_time']
+
+
+class KirimDorilarSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = KirimDorilar
+        fields = "__all__"

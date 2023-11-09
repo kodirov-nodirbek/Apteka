@@ -1,3 +1,4 @@
+from datetime import datetime, date
 from decimal import Decimal
 from django.utils import timezone
 from django.db import models
@@ -16,7 +17,20 @@ class Apteka(AbstractUser):
 
     def __str__(self):
         return self.name
-
+    
+    def get_nasiyalar(self):
+        nasiyalar = Nasiya.objects.filter(apteka_id=self)
+        summa = 0
+        for nasiya in nasiyalar:
+            summa+=nasiya.qolgan_qarz()
+        return summa
+    
+    def topshiriladigan_pul(self):
+        summalar = KunlikSavdo.objects.filter(apteka_id__id=self.id).filter(qabul_qildi=False)
+        pullar = 0
+        for summa in summalar:
+            pullar+=summa.topshirishga_pul()
+        return pullar
 
 class Firma(models.Model):
     class Meta:
@@ -58,7 +72,7 @@ class FirmaSavdolari(models.Model):
     shartnoma_raqami = models.CharField(max_length=50)
     harid_sanasi = models.DateTimeField(auto_now_add=True)
     tolov_muddati = models.DateField()
-    tolangan_summalar = models.JSONField(default=list, null=True)
+    tolangan_summalar = models.JSONField(default=list)
     tan_narxi = models.DecimalField(max_digits=14, decimal_places=0)
     sotish_narxi = models.DecimalField(max_digits=14, decimal_places=0)
     qaytarilgan_tovar_summasi = models.DecimalField(max_digits=14, decimal_places=0, default=Decimal(0))
@@ -106,7 +120,7 @@ class Nasiyachi(models.Model):
     apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
 
     def jami_qarzi(self):
-        return sum(nasiya.qolgan_qarz() for nasiya in self.nasiya_set.filter())
+        return sum(nasiya.qolgan_qarz() for nasiya in self.nasiya_set.filter(qabul_qildi=False))
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
@@ -154,9 +168,20 @@ class KunlikSavdo(models.Model):
     inkassa = models.DecimalField(max_digits=14, decimal_places=0)
     apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
+    qabul_qildi = models.BooleanField(default=False)
 
     def jami_summa(self):
         return self.naqd_pul+self.terminal+self.card_to_card+self.inkassa
+
+    def topshirishga_pul(self):
+        date = self.date.date()
+        harajatlar = Harajat.objects.filter(apteka_id=self.apteka_id).filter(date__date=date)
+        rosxod = 0
+        for harajat in harajatlar:
+            rosxod += harajat.naqd_pul+harajat.plastik
+        topshirishga = self.naqd_pul+self.card_to_card-rosxod
+        return topshirishga
+
 
     def decrease(self):
         return self.terminal+self.inkassa
@@ -164,23 +189,6 @@ class KunlikSavdo(models.Model):
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         apteka = Apteka.objects.get(id=self.apteka_id.id)
         apteka.jami_qoldiq-=Decimal(self.decrease())
-        apteka.save()
-        return super().save(force_insert, force_update, using, update_fields)
-
-
-class TopshirilganPul(models.Model):
-    naqd_pul = models.DecimalField(max_digits=14, decimal_places=0)
-    card_to_card = models.DecimalField(max_digits=14, decimal_places=0)
-    apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
-    qabul_qilindi = models.BooleanField(default=False)
-    date = models.DateTimeField(auto_now_add=True)
-
-    def jami(self):
-        return self.naqd_pul+self.card_to_card
-    
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        apteka = Apteka.objects.get(id=self.apteka_id.id)
-        apteka.jami_qoldiq-=Decimal(self.jami())
         apteka.save()
         return super().save(force_insert, force_update, using, update_fields)
 
@@ -226,6 +234,8 @@ class Hodim(models.Model):
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
+    ish_haqi_kunlik = models.DecimalField(max_digits=14, decimal_places=0) #80000
+    lavozimi = models.CharField(max_length=255)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
@@ -235,9 +245,27 @@ class HisoblanganOylik(models.Model):
     class Meta:
         verbose_name = "Hisoblanganoylik"
         verbose_name_plural = "Hisoblanganoyliklar"
-    oylik = models.DecimalField(max_digits=14, decimal_places=0)
+    ishlagan_kunlar = models.PositiveIntegerField()
     hodim = models.ForeignKey(to=Hodim, on_delete=models.PROTECT)
-    oylik_tarixi = models.JSONField(default=dict) 
+    date = models.DateField()
+
+    def hisoblangan_oylik(self):
+        hodim = Hodim.objects.get(id=self.hodim.id)
+        return hodim.ish_haqi_kunlik*self.ishlagan_kunlar
+
+    def qolga_tegishi(self):
+        olingan_oylik = OlinganOylik.objects.filter(hodim_id=self.hodim, date__month=self.date.month)
+        olingan_pul = 0
+        for oylik in olingan_oylik:
+            olingan_pul += oylik.summa
+        jami = self.hisoblangan_oylik()
+        return jami-olingan_pul
+
+
+class OlinganOylik(models.Model):
+    summa = models.DecimalField(max_digits=14, decimal_places=0)
+    date = models.DateTimeField(auto_now_add=True)
+    hodim_id = models.ForeignKey(Hodim, on_delete=models.CASCADE)
 
 
 class Harajat(models.Model):
@@ -247,9 +275,9 @@ class Harajat(models.Model):
     naqd_pul = models.DecimalField(max_digits=14, decimal_places=0)
     plastik = models.DecimalField(max_digits=14, decimal_places=0)
     izoh = models.TextField()
-    hodim_id = models.ForeignKey(to=Hodim, on_delete=models.CASCADE)
     apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
+    firma_uchun = models.BooleanField(default=False)
 
     def jami_harajat(self):
         return self.naqd_pul+self.plastik
@@ -274,5 +302,16 @@ class TovarYuborishFilial(models.Model):
             to_filial.jami_qoldiq+=self.tovar_summasi
             from_filial.save()
             to_filial.save()
-        super(TovarYuborishFilial, self).save(force_insert=False, force_update=False, using=None, update_fields=None)
+        return super(TovarYuborishFilial, self).save(force_insert=False, force_update=False, using=None, update_fields=None)
 
+
+class KirimDorilar(models.Model):
+    apteka_id = models.ForeignKey(Apteka, on_delete=models.CASCADE)
+    kirim_summasi = models.DecimalField(max_digits=14, decimal_places=0)
+    date = models.DateTimeField(auto_now_add=True)
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        apteka = Apteka.objects.get(id=self.apteka_id)
+        apteka.jami_qoldiq+=self.kirim_summasi
+        apteka.save
+        return super().save(force_insert, force_update, using, update_fields)

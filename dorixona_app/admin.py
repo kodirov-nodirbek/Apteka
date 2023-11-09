@@ -62,14 +62,14 @@ class HodimAdmin(admin.ModelAdmin):
 
 @admin.register(HisoblanganOylik)
 class HisoblanganOylikAdmin(admin.ModelAdmin):
-    list_display = ("hodim", "oylik")
+    list_display = ("hodim", )
     search_fields = ("hodim", )
 
 
 @admin.register(Harajat)
 class HarajatAdmin(admin.ModelAdmin):
-    list_display = ("hodim_id", "jami_harajat", "date")
-    search_fields = ("hodim_id", "date")
+    list_display = ("jami_harajat", "date")
+    search_fields = ("date", )
 
 
 @admin.register(TovarYuborishFilial)
