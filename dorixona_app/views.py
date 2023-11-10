@@ -1,12 +1,12 @@
 from datetime import datetime
-from rest_framework import filters, status
+from rest_framework import filters, status, generics
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 
-from .filters import KunlikSavdoFilter, FirmaSavdolariFilter, NasiyachiFilter, NasiyaFilter, HarajatFilter, TovarYuborishFilialFilter
+from .filters import KunlikSavdoFilter, FirmaSavdolariFilter, NasiyachiFilter, NasiyaFilter, HarajatFilter, TovarYuborishFilialFilter, BolimgaDoriFilter, HisoblanganOylikFilter
 from . import serializers
 from .models import (Apteka, Firma, FirmaSavdolari, Nasiyachi, Nasiya, KunlikSavdo, Bolim, BolimgaDori, Hodim, HisoblanganOylik, Harajat, TovarYuborishFilial, KirimDorilar, OlinganOylik)
 
@@ -79,10 +79,10 @@ class FirmaSavdolariViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = FirmaSavdolariFilter
 
-    def perform_create(self, serializer):
-        serializer.save()
-        instance = serializer.instance
-        serializer.add_payment(instance, serializer.validated_data)
+    # def perform_create(self, serializer):
+    #     serializer.save()
+    #     instance = serializer.instance
+    #     serializer.add_payment(instance, serializer.validated_data)
 
 
 class NasiyachiViewSet(ModelViewSet):
@@ -98,9 +98,10 @@ class NasiyaViewSet(ModelViewSet):
     queryset = Nasiya.objects.all().order_by('tolov_muddati')
     serializer_class = serializers.NasiyaSerializer
     permission_classes = [IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filter_backends = [DjangoFilterBackend]
     filterset_class = NasiyaFilter
-    search_fields = ['']
+    # filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    # search_fields = ['']
 
     
 class KunlikSavdoViewSet(ModelViewSet):
@@ -111,40 +112,55 @@ class KunlikSavdoViewSet(ModelViewSet):
     filterset_class = KunlikSavdoFilter
     
 
+class KunlikSavdoUpdateView(generics.UpdateAPIView):
+    queryset = KunlikSavdo.objects.all()
+    serializer_class = serializers.KunlikSavdoSerializer
+    permission_classes = [IsAuthenticated]
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        
+        id_list = request.data.get('id_list', [])
+        
+        instances = self.get_queryset().filter(id__in=id_list)
+        
+        for instance in instances:
+            instance.qabul_qildi = True
+            instance.save()
+
+        return Response(status=status.HTTP_200_OK)
+
+
 class BolimViewSet(ModelViewSet):
     queryset = Bolim.objects.all()
     serializer_class = serializers.BolimSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name', 'masul_shaxs', 'tel', 'manzil']
 
 
 class BolimgaDoriViewSet(ModelViewSet):
     queryset = BolimgaDori.objects.all()
     serializer_class = serializers.BolimgaDoriSerializer
     permission_classes = [IsAuthenticated]
-
-    def get_serializer_context(self):
-        return {'request': self.request}
-    
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = BolimgaDoriFilter
 
 
 class HodimViewSet(ModelViewSet):
     queryset = Hodim.objects.all()
     serializer_class = serializers.HodimSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['first_name', 'last_name', 'middle_name', 'lavozimi']
 
 
 class HisoblanganOylikViewSet(ModelViewSet):
     queryset = HisoblanganOylik.objects.all()
     serializer_class = serializers.HisoblanganOylikSerializer
     permission_classes = [IsAuthenticated]
-
-    def get_serializer_context(self):
-        return {'request': self.request}
-    
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = HisoblanganOylikFilter
 
 
 class OlinganOylikViewSet(ModelViewSet):

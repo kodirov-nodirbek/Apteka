@@ -22,5 +22,5 @@ router.register(r"kirimdorilar", views.KirimDorilarViewSet, basename="kirimdoril
 
 urlpatterns = [
     path('sana/', views.HozirgiSana.as_view(), name='sana'),
-    # path('aptekastatistics/<int:apteka_id>', views.AptekaStatisticsView.as_view(), name='aptekastatistics'),
+    path('kunliksavdo/qabul_qildi/', views.KunlikSavdoUpdateView.as_view(), name='update_qabul_qildi'),
 ] + router.urls

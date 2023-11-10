@@ -62,8 +62,8 @@ class HodimAdmin(admin.ModelAdmin):
 
 @admin.register(HisoblanganOylik)
 class HisoblanganOylikAdmin(admin.ModelAdmin):
-    list_display = ("hodim", )
-    search_fields = ("hodim", )
+    list_display = ("hodim_id", )
+    search_fields = ("hodim_id", )
 
 
 @admin.register(Harajat)

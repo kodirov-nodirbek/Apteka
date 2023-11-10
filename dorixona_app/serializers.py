@@ -40,10 +40,10 @@ class FirmaSavdolariSerializer(serializers.ModelSerializer):
         model = FirmaSavdolari
         fields = ['id', 'apteka_id', 'firma_id', 'shartnoma_raqami', 'qaytarilgan_tovar_summasi', 'harid_sanasi', 'tolov_muddati', 'tolangan_summalar', 'tolandi', 'tan_narxi', 'sotish_narxi', 'jami_tolangan_summa', 'jami_qarz', 'ochirishga_sorov']
 
-    def add_payment(self, instance, validated_data):
-        paid_amount = validated_data.get('paid_amount')
-        payment_date = datetime.now()
-        instance.add_payment(paid_amount, payment_date)
+    # def add_payment(self, instance, validated_data):
+    #     paid_amount = validated_data.get('paid_amount')
+    #     payment_date = datetime.now()
+    #     instance.add_payment(paid_amount, payment_date)
 
     # def to_representation(self, instance):
     #     data = super(FirmaSavdolariSerializer, self).to_representation(instance)
@@ -52,9 +52,9 @@ class FirmaSavdolariSerializer(serializers.ModelSerializer):
     #     return data
 
 
-class FirmaTolovPatch(serializers.Serializer):
-    qaytarilgan_tovar_summasi = serializers.DecimalField(max_digits=14, decimal_places=0)
-    tolangan_summalar = serializers.JSONField()
+# class FirmaTolovPatch(serializers.Serializer):
+#     qaytarilgan_tovar_summasi = serializers.DecimalField(max_digits=14, decimal_places=0)
+#     tolangan_summalar = serializers.JSONField()
 
 
 class NasiyachiSerializer(serializers.ModelSerializer):
@@ -101,7 +101,7 @@ class HodimSerializer(serializers.ModelSerializer):
 class HisoblanganOylikSerializer(serializers.ModelSerializer):
     class Meta:
         model = HisoblanganOylik
-        fields = ['id', 'hodim', 'hisoblangan_oylik', 'qolga_tegishi', 'ishlagan_kunlar', 'date']
+        fields = ['id', 'hodim_id', 'hisoblangan_oylik', 'qolga_tegishi', 'ishlagan_kunlar', 'date']
 
 
 class OlinganOylikSerializer(serializers.ModelSerializer):

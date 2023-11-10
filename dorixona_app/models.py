@@ -246,15 +246,15 @@ class HisoblanganOylik(models.Model):
         verbose_name = "Hisoblanganoylik"
         verbose_name_plural = "Hisoblanganoyliklar"
     ishlagan_kunlar = models.PositiveIntegerField()
-    hodim = models.ForeignKey(to=Hodim, on_delete=models.PROTECT)
+    hodim_id = models.ForeignKey(to=Hodim, on_delete=models.PROTECT)
     date = models.DateField()
 
     def hisoblangan_oylik(self):
-        hodim = Hodim.objects.get(id=self.hodim.id)
+        hodim = Hodim.objects.get(id=self.hodim_id.id)
         return hodim.ish_haqi_kunlik*self.ishlagan_kunlar
 
     def qolga_tegishi(self):
-        olingan_oylik = OlinganOylik.objects.filter(hodim_id=self.hodim, date__month=self.date.month)
+        olingan_oylik = OlinganOylik.objects.filter(hodim_id=self.hodim_id, date__month=self.date.month)
         olingan_pul = 0
         for oylik in olingan_oylik:
             olingan_pul += oylik.summa
@@ -311,7 +311,7 @@ class KirimDorilar(models.Model):
     date = models.DateTimeField(auto_now_add=True)
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        apteka = Apteka.objects.get(id=self.apteka_id)
+        apteka = Apteka.objects.get(id=self.apteka_id.id)
         apteka.jami_qoldiq+=self.kirim_summasi
-        apteka.save
+        apteka.save()
         return super().save(force_insert, force_update, using, update_fields)

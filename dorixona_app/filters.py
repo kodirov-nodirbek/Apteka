@@ -1,5 +1,5 @@
 import django_filters
-from .models import KunlikSavdo, FirmaSavdolari, Nasiyachi, Nasiya, Harajat, TovarYuborishFilial
+from .models import KunlikSavdo, FirmaSavdolari, Nasiyachi, Nasiya, Harajat, TovarYuborishFilial, BolimgaDori, HisoblanganOylik
 
 
 class FirmaSavdolariFilter(django_filters.FilterSet):
@@ -41,6 +41,29 @@ class KunlikSavdoFilter(django_filters.FilterSet):
 
     class Meta:
         model = KunlikSavdo
+        fields = []
+
+
+class BolimgaDoriFilter(django_filters.FilterSet):
+    apteka_id = django_filters.NumberFilter(field_name='apteka_id', lookup_expr='exact')
+    bolim_id = django_filters.NumberFilter(field_name='bolim_id', lookup_expr='exact')
+    date = django_filters.DateFilter(field_name='date', lookup_expr='date')
+    from_date = django_filters.DateFilter(field_name='date', lookup_expr='date__gte')
+    to_date = django_filters.DateFilter(field_name='date', lookup_expr='date__lte')
+
+    class Meta:
+        model = BolimgaDori
+        fields = []
+
+
+class HisoblanganOylikFilter(django_filters.FilterSet):
+    hodim_id = django_filters.NumberFilter(field_name='hodim_id', lookup_expr='exact')
+    date = django_filters.DateFilter(field_name='date', lookup_expr='date')
+    from_date = django_filters.DateFilter(field_name='date', lookup_expr='date__gte')
+    to_date = django_filters.DateFilter(field_name='date', lookup_expr='date__lte')
+
+    class Meta:
+        model = HisoblanganOylik
         fields = []
 
 
