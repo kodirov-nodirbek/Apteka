@@ -1,5 +1,5 @@
 import django_filters
-from .models import KunlikSavdo, FirmaSavdolari, Nasiyachi, Nasiya, Harajat, TovarYuborishFilial, BolimgaDori, HisoblanganOylik, OlinganOylik
+from .models import KunlikSavdo, FirmaSavdolari, Nasiyachi, Nasiya, Harajat, TovarYuborishFilial, BolimgaDori, HisoblanganOylik, OlinganOylik, KirimDorilar
 
 
 class MonthFilter(django_filters.Filter):
@@ -110,4 +110,15 @@ class TovarYuborishFilialFilter(django_filters.FilterSet):
 
     class Meta:
         model = TovarYuborishFilial
+        fields = []
+
+
+class KirimDorilarFilter(django_filters.FilterSet):
+    apteka_id = django_filters.NumberFilter(field_name='apteka_id', lookup_expr='exact')
+    date = django_filters.DateFilter(field_name='date', lookup_expr='date')
+    from_date = django_filters.DateFilter(field_name='date', lookup_expr='date__gte')
+    to_date = django_filters.DateFilter(field_name='date', lookup_expr='date__lte')
+
+    class Meta:
+        model = KirimDorilar
         fields = []
