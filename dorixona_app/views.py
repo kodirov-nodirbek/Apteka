@@ -1,4 +1,5 @@
 from datetime import datetime
+from django.db.models import Q
 from rest_framework import filters, status, generics
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
@@ -6,21 +7,57 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 
-from .filters import KunlikSavdoFilter, FirmaSavdolariFilter, NasiyachiFilter, NasiyaFilter, HarajatFilter, TovarYuborishFilialFilter, BolimgaDoriFilter, HisoblanganOylikFilter
+from .filters import (KunlikSavdoFilter, FirmaSavdolariFilter, NasiyachiFilter, NasiyaFilter, HarajatFilter, TovarYuborishFilialFilter, BolimgaDoriFilter, HisoblanganOylikFilter, OlinganOylikFilter)
 from . import serializers
 from .models import (Apteka, Firma, FirmaSavdolari, Nasiyachi, Nasiya, KunlikSavdo, Bolim, BolimgaDori, Hodim, HisoblanganOylik, Harajat, TovarYuborishFilial, KirimDorilar, OlinganOylik)
 
 
+# class AptekaViewSet(ModelViewSet):
+#     serializer_class = serializers.AptekaSerializer
+#     permission_classes = [IsAuthenticated]
+#     # queryset = Apteka.objects.all()
+
+#     def get_queryset(self):
+#         queryset = Apteka.objects.all()
+
+#         date_param = self.request.query_params.get('date_param')
+#         from_date = self.request.query_params.get('from_date')
+#         to_date = self.request.query_params.get('to_date')
+
+#         # Filter for each related model separately
+
+#         kirimdorilar_query = Q()
+#         olinganoylik_query = Q()
+#         harajat_query = Q()
+#         kunliksavdo_query = Q()
+
+#         if date_param:
+#             print("sana", date_param)
+#             kirimdorilar_query &= Q(kirimdorilar__date=date_param)
+#             olinganoylik_query &= Q(olinganoylik__date=date_param)
+#             harajat_query &= Q(harajat__date=date_param)
+#             kunliksavdo_query &= Q(kunliksavdo__date=date_param)
+
+#         elif from_date and to_date:
+#             kirimdorilar_query &= Q(kirimdorilar__date__range=(from_date, to_date))
+#             print("kirim dorilar", kirimdorilar_query)
+#             olinganoylik_query &= Q(olinganoylik__date__range=(from_date, to_date))
+#             harajat_query &= Q(harajat__date__range=(from_date, to_date))
+#             kunliksavdo_query &= Q(kunliksavdo__date__range=(from_date, to_date))
+
+#         # Combine the conditions
+#         queryset = queryset.filter(
+#             kirimdorilar_query | olinganoylik_query | harajat_query | kunliksavdo_query
+#         ).distinct()
+
+#         # Add any other filters you might need
+
+#         return queryset
+
 class AptekaViewSet(ModelViewSet):
-    queryset = Apteka.objects.all()
     serializer_class = serializers.AptekaSerializer
     permission_classes = [IsAuthenticated]
-
-    def get_serializer_context(self):
-        return {'request': self.request}
-    
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
+    queryset = Apteka.objects.all()
 
 
 class FirmaViewSet(ModelViewSet):
@@ -29,7 +66,7 @@ class FirmaViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     search_fields = ['name', 'masul_shaxs', 'phone']
-    
+
     def partial_update(self, request, *args, **kwargs):
         firma_object = self.get_object()
         savdolar = [savdo for savdo in FirmaSavdolari.objects.filter(firma_id=firma_object.id).order_by("tolov_muddati") if savdo.tolandi()==False]
@@ -38,9 +75,6 @@ class FirmaViewSet(ModelViewSet):
         plastik = data.get("plastik", 0)
         apteka_id = data.get("apteka_id", None)
         tolov = naqd+plastik
-        print("naqd", naqd)
-        print("plastik", plastik)
-        print('jami', tolov)
         for savdo in savdolar:
             if tolov!=0 and apteka_id and savdo.jami_qarz()>=tolov:
                 pay = {
@@ -69,6 +103,7 @@ class FirmaViewSet(ModelViewSet):
         if apteka_id and tolov!=0:
             Harajat.objects.create(apteka_id=Apteka.objects.get(id=apteka_id), naqd_pul=naqd, plastik=plastik, firma_uchun=True, izoh=f"{firma_object.id}, '{firma_object.name}' firmasi uchun")
         serializer = serializers.FirmaSerializer(firma_object)
+
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 
@@ -79,10 +114,17 @@ class FirmaSavdolariViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = FirmaSavdolariFilter
 
-    # def perform_create(self, serializer):
-    #     serializer.save()
-    #     instance = serializer.instance
-    #     serializer.add_payment(instance, serializer.validated_data)
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        jami_tolandi = sum(summa.jami_tolangan_summa() for summa in queryset)
+        jami_qarz = sum(summa.jami_qarz() for summa in queryset)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({"jami_tolangan_summalar": jami_tolandi, "jami_qarzlar": jami_qarz, "data": serializer.data})
 
 
 class NasiyachiViewSet(ModelViewSet):
@@ -98,8 +140,8 @@ class NasiyaViewSet(ModelViewSet):
     queryset = Nasiya.objects.all().order_by('tolov_muddati')
     serializer_class = serializers.NasiyaSerializer
     permission_classes = [IsAuthenticated]
-    filter_backends = [DjangoFilterBackend]
     filterset_class = NasiyaFilter
+    filter_backends = [DjangoFilterBackend]
     # filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     # search_fields = ['']
 
@@ -110,6 +152,20 @@ class KunlikSavdoViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = KunlikSavdoFilter
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        jami_naqd = sum(naqd.naqd_pul for naqd in queryset)
+        jami_terminal = sum(terminal.terminal for terminal in queryset)
+        jami_plastik = sum(plastik.card_to_card for plastik in queryset)
+        jami_inkassa = sum(inkassa.inkassa for inkassa in queryset)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({"jami_naqd": jami_naqd, "jami_terminal": jami_terminal, "jami_card_to_card": jami_plastik, "jami_inkassa": jami_inkassa, "data": serializer.data})
     
 
 class KunlikSavdoUpdateView(generics.UpdateAPIView):
@@ -162,12 +218,38 @@ class HisoblanganOylikViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = HisoblanganOylikFilter
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        jami = sum(oylik.hisoblangan_oylik() for oylik in queryset)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({"jami_oylik": jami, "data": serializer.data})
+
 
 class OlinganOylikViewSet(ModelViewSet):
     queryset = OlinganOylik.objects.all()
     serializer_class = serializers.OlinganOylikSerializer
     permission_classes = [IsAuthenticated]
+    filterset_class = OlinganOylikFilter
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        jami = sum(oylik.summa for oylik in queryset)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({"jami_olingan": jami, "data": serializer.data})
     
 class HarajatViewSet(ModelViewSet):
     queryset = Harajat.objects.all().order_by('-date')
@@ -175,6 +257,18 @@ class HarajatViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = HarajatFilter
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        jami = sum(harajat.jami_harajat() for harajat in queryset)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'jami_haratlar': jami, 'data': serializer.data})
 
 
 class TovarYuborishFilialViewSet(ModelViewSet):
@@ -186,6 +280,18 @@ class TovarYuborishFilialViewSet(ModelViewSet):
     
     def get_name(self):
         return self.name
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        jami = sum(tovar.tovar_summasi for tovar in queryset)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'jami_tovarlar_summasi': jami, 'data': serializer.data})
 
 
 class KirimDorilarViewSet(ModelViewSet):

@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from django.db.models import Sum
+
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import Token
 from .models import (Apteka, Firma, FirmaSavdolari, Nasiyachi, Nasiya, KunlikSavdo, Bolim, BolimgaDori, Hodim, HisoblanganOylik, Harajat, TovarYuborishFilial, KirimDorilar, OlinganOylik)
@@ -10,11 +12,9 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super(CustomTokenObtainPairSerializer, self).validate(attrs)
-        # Custom data you want to include
         data.update({'id': self.user.id})
         data.update({'role': self.user.role})
         data.update({"token": data.pop('access')})
-        # and everything else you want to send in the response
         return data
     
     @classmethod
@@ -45,22 +45,11 @@ class FirmaSavdolariSerializer(serializers.ModelSerializer):
     #     payment_date = datetime.now()
     #     instance.add_payment(paid_amount, payment_date)
 
-    # def to_representation(self, instance):
-    #     data = super(FirmaSavdolariSerializer, self).to_representation(instance)
-    #     firma_savdolari = FirmaSavdolari.objects.filter(apteka_id=self.request.user)
-    #     data.update({"firma_savdolari": firma_savdolari})
-    #     return data
-
-
-# class FirmaTolovPatch(serializers.Serializer):
-#     qaytarilgan_tovar_summasi = serializers.DecimalField(max_digits=14, decimal_places=0)
-#     tolangan_summalar = serializers.JSONField()
-
 
 class NasiyachiSerializer(serializers.ModelSerializer):
     class Meta:
         model = Nasiyachi
-        fields = ['id', 'first_name', 'last_name', 'middle_name', 'phone', 'address', 'passport', 'created_at', 'jami_qarzi', 'apteka_id']
+        fields = ['id', 'apteka_id', 'first_name', 'last_name', 'middle_name', 'phone', 'address', 'passport', 'created_at', 'jami_qarzi']
 
 
 class NasiyaSerializer(serializers.ModelSerializer):
@@ -97,6 +86,13 @@ class HodimSerializer(serializers.ModelSerializer):
         model = Hodim
         fields = ['id', 'first_name', 'last_name', 'middle_name', 'apteka_id', 'active', 'created_at', 'ish_haqi_kunlik', 'lavozimi']
         
+
+class OylikQuerySetSerializer(serializers.Serializer):
+    total_oylik = serializers.SerializerMethodField()
+
+    def get_total_oylik(self, obj):
+        return obj.get_total_oylik()
+
 
 class HisoblanganOylikSerializer(serializers.ModelSerializer):
     class Meta:

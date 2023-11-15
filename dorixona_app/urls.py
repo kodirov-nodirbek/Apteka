@@ -4,7 +4,7 @@ from . import views
 
 
 router = DefaultRouter()
-router.register("aptekalar", views.AptekaViewSet)
+router.register("aptekalar", views.AptekaViewSet, basename="aptekalar")
 router.register(r'firmalar', views.FirmaViewSet, basename='firmalar')
 router.register(r'firma_savdolari', views.FirmaSavdolariViewSet, basename='firmasavdolari')
 router.register("nasiyachilar", views.NasiyachiViewSet)
@@ -23,4 +23,5 @@ router.register(r"kirimdorilar", views.KirimDorilarViewSet, basename="kirimdoril
 urlpatterns = [
     path('sana/', views.HozirgiSana.as_view(), name='sana'),
     path('kunliksavdo/qabul_qildi/', views.KunlikSavdoUpdateView.as_view(), name='update_qabul_qildi'),
+    # path('aptekastatistics/', views.AptekaStatisticsView.as_view(), name='Apteka_statistics'),
 ] + router.urls

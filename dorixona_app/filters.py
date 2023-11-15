@@ -1,5 +1,13 @@
 import django_filters
-from .models import KunlikSavdo, FirmaSavdolari, Nasiyachi, Nasiya, Harajat, TovarYuborishFilial, BolimgaDori, HisoblanganOylik
+from .models import KunlikSavdo, FirmaSavdolari, Nasiyachi, Nasiya, Harajat, TovarYuborishFilial, BolimgaDori, HisoblanganOylik, OlinganOylik
+
+
+class MonthFilter(django_filters.Filter):
+    def filter(self, queryset, value):
+        if value:
+            year, month, day= map(int, value.split('-'))
+            return queryset.filter(date__year=year, date__month=month)
+        return queryset
 
 
 class FirmaSavdolariFilter(django_filters.FilterSet):
@@ -26,6 +34,7 @@ class NasiyachiFilter(django_filters.FilterSet):
 class NasiyaFilter(django_filters.FilterSet):
     apteka_id = django_filters.NumberFilter(field_name='apteka_id', lookup_expr='exact')
     chek_raqami = django_filters.NumberFilter(field_name='chek_raqami', lookup_expr='exact')
+    tolandi = django_filters.BooleanFilter(field_name='tolandi', lookup_expr='exact')
     
     class Meta:
         model = Nasiya
@@ -33,8 +42,8 @@ class NasiyaFilter(django_filters.FilterSet):
 
 
 class KunlikSavdoFilter(django_filters.FilterSet):
-    date = django_filters.DateFilter(field_name='date', lookup_expr='date')
     apteka_id = django_filters.NumberFilter(field_name='apteka_id', lookup_expr='exact')
+    date = django_filters.DateFilter(field_name='date', lookup_expr='date')
     from_date = django_filters.DateFilter(field_name='date', lookup_expr='date__gte')
     to_date = django_filters.DateFilter(field_name='date', lookup_expr='date__lte')
     qabul_qildi = django_filters.BooleanFilter(field_name='qabul_qildi', lookup_expr='exact')
@@ -58,33 +67,35 @@ class BolimgaDoriFilter(django_filters.FilterSet):
 
 class HisoblanganOylikFilter(django_filters.FilterSet):
     hodim_id = django_filters.NumberFilter(field_name='hodim_id', lookup_expr='exact')
-    date = django_filters.DateFilter(field_name='date', lookup_expr='date')
-    from_date = django_filters.DateFilter(field_name='date', lookup_expr='date__gte')
-    to_date = django_filters.DateFilter(field_name='date', lookup_expr='date__lte')
+    date = django_filters.DateFilter(field_name='date', lookup_expr='exact')
+    from_date = django_filters.DateFilter(field_name='date', lookup_expr='gte')
+    to_date = django_filters.DateFilter(field_name='date', lookup_expr='lte')
+    month = MonthFilter(field_name='date', label='Month (YYYY-MM)')
 
     class Meta:
         model = HisoblanganOylik
         fields = []
 
 
-class HarajatFilter(django_filters.FilterSet):
-    date = django_filters.DateFilter(field_name='date', lookup_expr='date')
+class OlinganOylikFilter(django_filters.FilterSet):
     apteka_id = django_filters.NumberFilter(field_name='apteka_id', lookup_expr='exact')
     hodim_id = django_filters.NumberFilter(field_name='hodim_id', lookup_expr='exact')
-    from_date = django_filters.DateFilter(field_name='date', lookup_expr='date__gte')
-    to_date = django_filters.DateFilter(field_name='date', lookup_expr='date__lte')
+    date = django_filters.DateFilter(field_name='date', lookup_expr='exact')
+    from_date = django_filters.DateFilter(field_name='date', lookup_expr='gte')
+    to_date = django_filters.DateFilter(field_name='date', lookup_expr='lte')
+    month = MonthFilter(field_name='date', label='Month (YYYY-MM)')
 
     class Meta:
-        model = Harajat
+        model = OlinganOylik
         fields = []
 
 
 class HarajatFilter(django_filters.FilterSet):
-    date = django_filters.DateFilter(field_name='date', lookup_expr='date')
     apteka_id = django_filters.NumberFilter(field_name='apteka_id', lookup_expr='exact')
-    hodim_id = django_filters.NumberFilter(field_name='hodim_id', lookup_expr='exact')
+    date = django_filters.DateFilter(field_name='date', lookup_expr='date')
     from_date = django_filters.DateFilter(field_name='date', lookup_expr='date__gte')
     to_date = django_filters.DateFilter(field_name='date', lookup_expr='date__lte')
+    firma_uchun = django_filters.BooleanFilter(field_name='firma_uchun', lookup_expr='exact')
 
     class Meta:
         model = Harajat

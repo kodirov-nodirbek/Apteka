@@ -120,7 +120,7 @@ class Nasiyachi(models.Model):
     apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
 
     def jami_qarzi(self):
-        return sum(nasiya.qolgan_qarz() for nasiya in self.nasiya_set.filter(qabul_qildi=False))
+        return sum(nasiya.qolgan_qarz() for nasiya in self.nasiya_set.filter())
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
@@ -145,17 +145,17 @@ class Nasiya(models.Model):
     def qolgan_qarz(self):
         return self.nasiya_summasi-self.jami_tolangan_summa()
     
-    def add_payment(self, paid_amount, payment_date):
-        if self.tolangan_summalar is None:
-            self.tolangan_summalar = []
+    # def add_payment(self, paid_amount, payment_date):
+    #     if self.tolangan_summalar is None:
+    #         self.tolangan_summalar = []
 
-        payment_data = {
-            'summa': paid_amount,
-            'harid_sanasi': payment_date.isoformat() if payment_date else timezone.now().isoformat()
-        }
-        if payment_data['summa'] != None:
-            self.tolangan_summalar.append(payment_data)
-            self.save()
+    #     payment_data = {
+    #         'summa': paid_amount,
+    #         'harid_sanasi': payment_date.isoformat() if payment_date else timezone.now().isoformat()
+    #     }
+    #     if payment_data['summa'] != None:
+    #         self.tolangan_summalar.append(payment_data)
+    #         self.save()
 
 
 class KunlikSavdo(models.Model):
@@ -247,25 +247,31 @@ class HisoblanganOylik(models.Model):
         verbose_name_plural = "Hisoblanganoyliklar"
     ishlagan_kunlar = models.PositiveIntegerField()
     hodim_id = models.ForeignKey(to=Hodim, on_delete=models.PROTECT)
-    date = models.DateField()
+    date = models.DateTimeField()
 
     def hisoblangan_oylik(self):
-        hodim = Hodim.objects.get(id=self.hodim_id.id)
-        return hodim.ish_haqi_kunlik*self.ishlagan_kunlar
+        return self.hodim_id.ish_haqi_kunlik * self.ishlagan_kunlar
 
+    # def qolga_tegishi(self):
+    #     olingan_oylik = OlinganOylik.objects.filter(hodim_id=self.hodim_id, date__month=self.date.month)
+    #     olingan_pul = 0
+    #     for oylik in olingan_oylik:
+    #         olingan_pul += oylik.summa
+    #     jami = self.hisoblangan_oylik()
+    #     return jami-olingan_pul
     def qolga_tegishi(self):
-        olingan_oylik = OlinganOylik.objects.filter(hodim_id=self.hodim_id, date__month=self.date.month)
-        olingan_pul = 0
-        for oylik in olingan_oylik:
-            olingan_pul += oylik.summa
+        olingan_pul = OlinganOylik.objects.filter(hodim_id=self.hodim_id, date__month=self.date.month).aggregate(models.Sum('summa'))['summa__sum'] or 0
         jami = self.hisoblangan_oylik()
-        return jami-olingan_pul
+        return jami - olingan_pul
+
+
 
 
 class OlinganOylik(models.Model):
     summa = models.DecimalField(max_digits=14, decimal_places=0)
     date = models.DateTimeField(auto_now_add=True)
     hodim_id = models.ForeignKey(Hodim, on_delete=models.CASCADE)
+    apteka_id = models.ForeignKey(Apteka, on_delete=models.CASCADE)
 
 
 class Harajat(models.Model):
