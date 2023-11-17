@@ -1,4 +1,3 @@
-from datetime import datetime, date
 from decimal import Decimal
 from django.utils import timezone
 from django.db import models
@@ -31,6 +30,7 @@ class Apteka(AbstractUser):
         for summa in summalar:
             pullar+=summa.topshirishga_pul()
         return pullar
+
 
 class Firma(models.Model):
     class Meta:
@@ -78,7 +78,6 @@ class FirmaSavdolari(models.Model):
     qaytarilgan_tovar_summasi = models.DecimalField(max_digits=14, decimal_places=0, default=Decimal(0))
     ochirishga_sorov = models.BooleanField(default=False)
     izoh = models.TextField(null=True, blank=True)
-
 
     def jami_tolangan_summa(self):
         tolangan_summalar = self.tolangan_summalar or []
@@ -144,18 +143,6 @@ class Nasiya(models.Model):
 
     def qolgan_qarz(self):
         return self.nasiya_summasi-self.jami_tolangan_summa()
-    
-    # def add_payment(self, paid_amount, payment_date):
-    #     if self.tolangan_summalar is None:
-    #         self.tolangan_summalar = []
-
-    #     payment_data = {
-    #         'summa': paid_amount,
-    #         'harid_sanasi': payment_date.isoformat() if payment_date else timezone.now().isoformat()
-    #     }
-    #     if payment_data['summa'] != None:
-    #         self.tolangan_summalar.append(payment_data)
-    #         self.save()
 
 
 class KunlikSavdo(models.Model):
@@ -182,7 +169,6 @@ class KunlikSavdo(models.Model):
         topshirishga = self.naqd_pul+self.card_to_card-rosxod
         return topshirishga
 
-
     def decrease(self):
         return self.terminal+self.inkassa
     
@@ -204,6 +190,7 @@ class Bolim(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class BolimgaDori(models.Model):
     class Meta:
@@ -252,26 +239,21 @@ class HisoblanganOylik(models.Model):
     def hisoblangan_oylik(self):
         return self.hodim_id.ish_haqi_kunlik * self.ishlagan_kunlar
 
-    # def qolga_tegishi(self):
-    #     olingan_oylik = OlinganOylik.objects.filter(hodim_id=self.hodim_id, date__month=self.date.month)
-    #     olingan_pul = 0
-    #     for oylik in olingan_oylik:
-    #         olingan_pul += oylik.summa
-    #     jami = self.hisoblangan_oylik()
-    #     return jami-olingan_pul
     def qolga_tegishi(self):
-        olingan_pul = OlinganOylik.objects.filter(hodim_id=self.hodim_id, date__month=self.date.month).aggregate(models.Sum('summa'))['summa__sum'] or 0
+        olingan_oylik_sum = sum(oylik.summa() for oylik in OlinganOylik.objects.filter(hodim_id=self.hodim_id, date__month=self.date.month))
         jami = self.hisoblangan_oylik()
-        return jami - olingan_pul
-
-
+        return jami - olingan_oylik_sum
 
 
 class OlinganOylik(models.Model):
-    summa = models.DecimalField(max_digits=14, decimal_places=0)
+    naqd_pul = models.DecimalField(max_digits=14, decimal_places=0, null=True)
+    card_to_card = models.DecimalField(max_digits=14, decimal_places=0, null=True)
     date = models.DateTimeField(auto_now_add=True)
     hodim_id = models.ForeignKey(Hodim, on_delete=models.CASCADE)
     apteka_id = models.ForeignKey(Apteka, on_delete=models.CASCADE)
+
+    def summa(self):
+        return self.naqd_pul+self.card_to_card
 
 
 class Harajat(models.Model):

@@ -1,9 +1,4 @@
-from datetime import datetime
-
-from django.db.models import Sum
-
 from rest_framework import serializers
-from rest_framework_simplejwt.tokens import Token
 from .models import (Apteka, Firma, FirmaSavdolari, Nasiyachi, Nasiya, KunlikSavdo, Bolim, BolimgaDori, Hodim, HisoblanganOylik, Harajat, TovarYuborishFilial, KirimDorilar, OlinganOylik)
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -39,11 +34,6 @@ class FirmaSavdolariSerializer(serializers.ModelSerializer):
     class Meta:
         model = FirmaSavdolari
         fields = ['id', 'apteka_id', 'firma_id', 'shartnoma_raqami', 'qaytarilgan_tovar_summasi', 'harid_sanasi', 'tolov_muddati', 'tolangan_summalar', 'tolandi', 'tan_narxi', 'sotish_narxi', 'jami_tolangan_summa', 'jami_qarz', 'ochirishga_sorov']
-
-    # def add_payment(self, instance, validated_data):
-    #     paid_amount = validated_data.get('paid_amount')
-    #     payment_date = datetime.now()
-    #     instance.add_payment(paid_amount, payment_date)
 
 
 class NasiyachiSerializer(serializers.ModelSerializer):
@@ -87,13 +77,6 @@ class HodimSerializer(serializers.ModelSerializer):
         fields = ['id', 'first_name', 'last_name', 'middle_name', 'apteka_id', 'active', 'created_at', 'ish_haqi_kunlik', 'lavozimi']
         
 
-class OylikQuerySetSerializer(serializers.Serializer):
-    total_oylik = serializers.SerializerMethodField()
-
-    def get_total_oylik(self, obj):
-        return obj.get_total_oylik()
-
-
 class HisoblanganOylikSerializer(serializers.ModelSerializer):
     class Meta:
         model = HisoblanganOylik
@@ -103,7 +86,7 @@ class HisoblanganOylikSerializer(serializers.ModelSerializer):
 class OlinganOylikSerializer(serializers.ModelSerializer):
     class Meta:
         model = OlinganOylik
-        fields = "__all__"
+        fields = ['hodim_id', 'apteka_id', 'naqd_pul', 'card_to_card', 'summa', 'date']
 
 
 class HarajatSerializer(serializers.ModelSerializer):

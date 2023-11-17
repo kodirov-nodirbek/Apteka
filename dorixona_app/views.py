@@ -1,5 +1,4 @@
 from datetime import datetime
-from django.db.models import Q
 from rest_framework import filters, status, generics
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
@@ -11,48 +10,6 @@ from .filters import (KunlikSavdoFilter, FirmaSavdolariFilter, NasiyachiFilter, 
 from . import serializers
 from .models import (Apteka, Firma, FirmaSavdolari, Nasiyachi, Nasiya, KunlikSavdo, Bolim, BolimgaDori, Hodim, HisoblanganOylik, Harajat, TovarYuborishFilial, KirimDorilar, OlinganOylik)
 
-
-# class AptekaViewSet(ModelViewSet):
-#     serializer_class = serializers.AptekaSerializer
-#     permission_classes = [IsAuthenticated]
-#     # queryset = Apteka.objects.all()
-
-#     def get_queryset(self):
-#         queryset = Apteka.objects.all()
-
-#         date_param = self.request.query_params.get('date_param')
-#         from_date = self.request.query_params.get('from_date')
-#         to_date = self.request.query_params.get('to_date')
-
-#         # Filter for each related model separately
-
-#         kirimdorilar_query = Q()
-#         olinganoylik_query = Q()
-#         harajat_query = Q()
-#         kunliksavdo_query = Q()
-
-#         if date_param:
-#             print("sana", date_param)
-#             kirimdorilar_query &= Q(kirimdorilar__date=date_param)
-#             olinganoylik_query &= Q(olinganoylik__date=date_param)
-#             harajat_query &= Q(harajat__date=date_param)
-#             kunliksavdo_query &= Q(kunliksavdo__date=date_param)
-
-#         elif from_date and to_date:
-#             kirimdorilar_query &= Q(kirimdorilar__date__range=(from_date, to_date))
-#             print("kirim dorilar", kirimdorilar_query)
-#             olinganoylik_query &= Q(olinganoylik__date__range=(from_date, to_date))
-#             harajat_query &= Q(harajat__date__range=(from_date, to_date))
-#             kunliksavdo_query &= Q(kunliksavdo__date__range=(from_date, to_date))
-
-#         # Combine the conditions
-#         queryset = queryset.filter(
-#             kirimdorilar_query | olinganoylik_query | harajat_query | kunliksavdo_query
-#         ).distinct()
-
-#         # Add any other filters you might need
-
-#         return queryset
 
 class AptekaViewSet(ModelViewSet):
     serializer_class = serializers.AptekaSerializer
@@ -246,10 +203,11 @@ class OlinganOylikViewSet(ModelViewSet):
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
         
-        jami = sum(oylik.summa for oylik in queryset)
+        jami = sum(oylik.summa() for oylik in queryset)
 
         serializer = self.get_serializer(queryset, many=True)
         return Response({"jami_olingan": jami, "data": serializer.data})
+    
     
 class HarajatViewSet(ModelViewSet):
     queryset = Harajat.objects.all().order_by('-date')
