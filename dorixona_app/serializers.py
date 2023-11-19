@@ -86,13 +86,13 @@ class HisoblanganOylikSerializer(serializers.ModelSerializer):
 class OlinganOylikSerializer(serializers.ModelSerializer):
     class Meta:
         model = OlinganOylik
-        fields = ['hodim_id', 'apteka_id', 'naqd_pul', 'card_to_card', 'summa', 'date']
+        fields = ['hodim_id', 'apteka_id', "apteka_nomi", 'naqd_pul', 'card_to_card', 'summa', 'date']
 
 
 class HarajatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Harajat
-        fields = ['id', 'naqd_pul', 'plastik', 'izoh', 'apteka_id', 'jami_harajat', 'date', 'firma_uchun']
+        fields = ['id', 'naqd_pul', 'plastik', 'izoh', 'apteka_id', "apteka_nomi", 'jami_harajat', 'date', 'firma_uchun', 'firma_id']
 
 
 class TovarYuborishFilialSerializer(serializers.ModelSerializer):

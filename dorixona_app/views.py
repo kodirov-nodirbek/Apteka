@@ -58,7 +58,7 @@ class FirmaViewSet(ModelViewSet):
 
         firma_object.save()
         if apteka_id and tolov!=0:
-            Harajat.objects.create(apteka_id=Apteka.objects.get(id=apteka_id), naqd_pul=naqd, plastik=plastik, firma_uchun=True, izoh=f"{firma_object.id}, '{firma_object.name}' firmasi uchun")
+            Harajat.objects.create(apteka_id=Apteka.objects.get(id=apteka_id), naqd_pul=naqd, plastik=plastik, firma_uchun=True, firma_id=firma_object, izoh=f"'{firma_object.name}' firmasi uchun")
         serializer = serializers.FirmaSerializer(firma_object)
 
         return Response(serializer.data, status=status.HTTP_200_OK)

@@ -1,5 +1,6 @@
 from decimal import Decimal
 from django.utils import timezone
+from datetime import datetime
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
@@ -248,9 +249,12 @@ class HisoblanganOylik(models.Model):
 class OlinganOylik(models.Model):
     naqd_pul = models.DecimalField(max_digits=14, decimal_places=0, null=True)
     card_to_card = models.DecimalField(max_digits=14, decimal_places=0, null=True)
-    date = models.DateTimeField(auto_now_add=True)
+    date = models.DateTimeField(default=datetime.now())
     hodim_id = models.ForeignKey(Hodim, on_delete=models.CASCADE)
     apteka_id = models.ForeignKey(Apteka, on_delete=models.CASCADE)
+
+    def apteka_nomi(self):
+        return self.apteka_id.name
 
     def summa(self):
         return self.naqd_pul+self.card_to_card
@@ -266,6 +270,10 @@ class Harajat(models.Model):
     apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
     firma_uchun = models.BooleanField(default=False)
+    firma_id = models.ForeignKey(Firma, on_delete=models.CASCADE, null=True)
+
+    def apteka_nomi(self):
+        return self.apteka_id.name
 
     def jami_harajat(self):
         return self.naqd_pul+self.plastik
