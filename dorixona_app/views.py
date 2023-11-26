@@ -225,8 +225,10 @@ class HarajatViewSet(ModelViewSet):
             return self.get_paginated_response(serializer.data)
         
         jami = sum(harajat.jami_harajat() for harajat in queryset)
+        jami_plastik = sum(harajat.plastik for harajat in queryset)
+        jami_naqd = sum(harajat.naqd_pul for harajat in queryset)
         serializer = self.get_serializer(queryset, many=True)
-        return Response({'jami_haratlar': jami, 'data': serializer.data})
+        return Response({'jami_naqd': jami_naqd, 'jami_plastik': jami_plastik, 'jami_harajatlar': jami, 'data': serializer.data})
 
 
 class TovarYuborishFilialViewSet(ModelViewSet):
