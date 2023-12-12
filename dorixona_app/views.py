@@ -31,6 +31,8 @@ class FirmaViewSet(ModelViewSet):
         naqd = data.get("naqd", 0)
         plastik = data.get("plastik", 0)
         apteka_id = data.get("apteka_id", None)
+        izoh = data.get("izoh", "-")
+
         tolov = naqd+plastik
         for savdo in savdolar:
             if tolov!=0 and apteka_id and savdo.jami_qarz()>=tolov:
@@ -58,7 +60,7 @@ class FirmaViewSet(ModelViewSet):
 
         firma_object.save()
         if apteka_id and tolov!=0:
-            Harajat.objects.create(apteka_id=Apteka.objects.get(id=apteka_id), naqd_pul=naqd, plastik=plastik, firma_uchun=True, firma_id=firma_object, izoh=f"'{firma_object.name}' firmasi uchun")
+            Harajat.objects.create(apteka_id=Apteka.objects.get(id=apteka_id), naqd_pul=naqd, plastik=plastik, firma_uchun=True, firma_id=firma_object, izoh=izoh)
         serializer = serializers.FirmaSerializer(firma_object)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -90,17 +92,29 @@ class NasiyachiViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_class = NasiyachiFilter
-    search_fields = ['first_name', 'last_name', 'passport', 'phone', 'chek_raqami']
+    search_fields = ['first_name', 'last_name', 'passport', 'phone']
     
 
 class NasiyaViewSet(ModelViewSet):
     queryset = Nasiya.objects.all().order_by('tolov_muddati')
     serializer_class = serializers.NasiyaSerializer
     permission_classes = [IsAuthenticated]
-    filterset_class = NasiyaFilter
     filter_backends = [DjangoFilterBackend]
-    # filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    # search_fields = ['']
+    filterset_class = NasiyaFilter
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    search_fields = ['chek_raqami', 'date']
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        jami_tolandi = sum(summa.jami_tolangan_summa() for summa in queryset)
+        jami_qarz = sum(summa.qolgan_qarz() for summa in queryset)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({"jami_tolangan_summalar": jami_tolandi, "qolgan_qarz": jami_qarz, "data": serializer.data})
 
     
 class KunlikSavdoViewSet(ModelViewSet):

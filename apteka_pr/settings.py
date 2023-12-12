@@ -36,6 +36,10 @@ CORS_ALLOWED_ORIGINS = [
     "http://192.168.1.25",
 ]
 
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
+
 APPEND_SLASH = False
 
 CORS_ALLOW_CREDENTIALS = False
@@ -49,6 +53,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_filters',
+
+    "debug_toolbar",
+
     'rest_framework',
     "rest_framework.authtoken",
     'rest_framework_simplejwt',
@@ -104,6 +111,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "allauth.account.middleware.AccountMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = 'apteka_pr.urls'

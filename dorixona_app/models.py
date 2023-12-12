@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import Iterable, Optional
 from django.utils import timezone
 from datetime import datetime
 from django.db import models
@@ -93,18 +94,6 @@ class FirmaSavdolari(models.Model):
     def tolandi(self):
         return self.jami_qarz()<=0
 
-    def add_payment(self, paid_amount, payment_date):
-        if self.tolangan_summalar is None:
-            self.tolangan_summalar = []
-
-        payment_data = {
-            'summa': paid_amount,
-            'harid_sanasi': payment_date.isoformat() if payment_date else timezone.now().isoformat()
-        }
-        if payment_data['summa'] != None:
-            self.tolangan_summalar.append(payment_data)
-            self.save()
-
 
 class Nasiyachi(models.Model):
     class Meta:
@@ -130,13 +119,14 @@ class Nasiya(models.Model):
     class Meta:
         verbose_name = "Nasiya"
         verbose_name_plural = "Nasiyalar"
-    chek_raqami = models.PositiveBigIntegerField()
+    chek_raqami = models.CharField(max_length=55, null=True)
     nasiya_summasi = models.DecimalField(max_digits=14, decimal_places=0)
-    tolangan_summalar = models.JSONField(default=list, null=True)
+    tolangan_summalar = models.JSONField(default=list)
     date = models.DateTimeField(auto_now_add=True)
     tolov_muddati = models.DateField()
     nasiyachi_id = models.ForeignKey(to=Nasiyachi, on_delete=models.CASCADE)
     apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
+    tolandi = models.BooleanField(default=False)
 
     def jami_tolangan_summa(self):
         tolangan_summalar = self.tolangan_summalar or []
@@ -144,7 +134,12 @@ class Nasiya(models.Model):
 
     def qolgan_qarz(self):
         return self.nasiya_summasi-self.jami_tolangan_summa()
+  
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        if self.qolgan_qarz() <= 0:
+            self.tolandi = True
 
+        super().save(force_insert, force_update, using, update_fields)
 
 class KunlikSavdo(models.Model):
     class Meta:

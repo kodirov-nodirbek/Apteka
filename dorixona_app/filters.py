@@ -1,4 +1,6 @@
 import django_filters
+from django.db.models import F, ExpressionWrapper, fields
+from django.db.models.functions import Now
 from .models import KunlikSavdo, FirmaSavdolari, Nasiyachi, Nasiya, Harajat, TovarYuborishFilial, BolimgaDori, HisoblanganOylik, OlinganOylik, KirimDorilar
 
 
@@ -33,6 +35,7 @@ class NasiyachiFilter(django_filters.FilterSet):
 
 class NasiyaFilter(django_filters.FilterSet):
     apteka_id = django_filters.NumberFilter(field_name='apteka_id', lookup_expr='exact')
+    nasiyachi_id = django_filters.NumberFilter(field_name='nasiyachi_id', lookup_expr='exact')
     chek_raqami = django_filters.NumberFilter(field_name='chek_raqami', lookup_expr='exact')
     tolandi = django_filters.BooleanFilter(field_name='tolandi', lookup_expr='exact')
     
