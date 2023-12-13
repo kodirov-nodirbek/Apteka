@@ -95,6 +95,7 @@ class OlinganOylikFilter(django_filters.FilterSet):
 
 class HarajatFilter(django_filters.FilterSet):
     apteka_id = django_filters.NumberFilter(field_name='apteka_id', lookup_expr='exact')
+    firma_id = django_filters.NumberFilter(field_name='firma_id', lookup_expr='exact')
     date = django_filters.DateFilter(field_name='date', lookup_expr='date')
     from_date = django_filters.DateFilter(field_name='date', lookup_expr='date__gte')
     to_date = django_filters.DateFilter(field_name='date', lookup_expr='date__lte')

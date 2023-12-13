@@ -270,6 +270,12 @@ class Harajat(models.Model):
     def apteka_nomi(self):
         return self.apteka_id.name
 
+    def firma_nomi(self):
+        if self.firma_id:
+            return self.firma_id.name
+        else:
+            return None
+
     def jami_harajat(self):
         return self.naqd_pul+self.plastik
   

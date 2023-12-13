@@ -87,7 +87,7 @@ class OlinganOylikSerializer(serializers.ModelSerializer):
 class HarajatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Harajat
-        fields = ['id', 'naqd_pul', 'plastik', 'izoh', 'apteka_id', "apteka_nomi", 'jami_harajat', 'date', 'firma_uchun', 'firma_id']
+        fields = ['id', 'naqd_pul', 'plastik', 'izoh', 'apteka_id', "apteka_nomi", 'jami_harajat', 'date', 'firma_uchun', 'firma_id', 'firma_nomi']
 
 
 class TovarYuborishFilialSerializer(serializers.ModelSerializer):
