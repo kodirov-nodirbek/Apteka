@@ -86,7 +86,7 @@ class OlinganOylikFilter(django_filters.FilterSet):
     date = django_filters.DateFilter(field_name='date', lookup_expr='exact')
     from_date = django_filters.DateFilter(field_name='date', lookup_expr='gte')
     to_date = django_filters.DateFilter(field_name='date', lookup_expr='lte')
-    month = MonthFilter(field_name='date', label='Month (YYYY-MM)')
+    month = MonthFilter(field_name='date', label='Month(YYYY-MM)')
 
     class Meta:
         model = OlinganOylik

@@ -197,7 +197,7 @@ class BolimgaDori(models.Model):
     bolim_id = models.ForeignKey(Bolim, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
+    def bolim_name(self):
         return self.bolim_id.name
     
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
@@ -251,6 +251,9 @@ class OlinganOylik(models.Model):
     def apteka_nomi(self):
         return self.apteka_id.name
 
+    def hodim_name(self):
+        return f"{self.hodim_id.first_name} {self.hodim_id.last_name} {self.hodim_id.middle_name}"
+
     def summa(self):
         return self.naqd_pul+self.card_to_card
 
@@ -271,10 +274,7 @@ class Harajat(models.Model):
         return self.apteka_id.name
 
     def firma_nomi(self):
-        if self.firma_id:
-            return self.firma_id.name
-        else:
-            return None
+        return self.firma_id.name if self.firma_id else None
 
     def jami_harajat(self):
         return self.naqd_pul+self.plastik
@@ -288,8 +288,12 @@ class TovarYuborishFilial(models.Model):
     sent_time = models.DateTimeField(auto_now_add=True)
     accepted_time = models.DateTimeField(null=True)
 
-    def apteka(self):
+    def from_apteka_name(self):
         return self.from_filial.name
+    
+    def to_apteka_name(self):
+        return Apteka.objects.get(id=self.to_filial).name
+        # return self.to_filial
     
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         if self.accepted:

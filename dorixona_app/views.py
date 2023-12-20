@@ -207,6 +207,7 @@ class OlinganOylikViewSet(ModelViewSet):
     queryset = OlinganOylik.objects.all()
     serializer_class = serializers.OlinganOylikSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
     filterset_class = OlinganOylikFilter
 
     def list(self, request, *args, **kwargs):

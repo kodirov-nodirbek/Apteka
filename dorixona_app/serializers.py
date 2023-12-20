@@ -63,7 +63,7 @@ class BolimSerializer(serializers.ModelSerializer):
 class BolimgaDoriSerializer(serializers.ModelSerializer):
     class Meta:
         model = BolimgaDori
-        fields = "__all__"
+        fields = ['summa', 'apteka_id', 'bolim_id', 'date', 'bolim_name']
 
 
 class HodimSerializer(serializers.ModelSerializer):
@@ -81,7 +81,7 @@ class HisoblanganOylikSerializer(serializers.ModelSerializer):
 class OlinganOylikSerializer(serializers.ModelSerializer):
     class Meta:
         model = OlinganOylik
-        fields = ['hodim_id', 'apteka_id', "apteka_nomi", 'naqd_pul', 'card_to_card', 'summa', 'date']
+        fields = ['hodim_id', 'hodim_name', 'apteka_id', "apteka_nomi", 'naqd_pul', 'card_to_card', 'summa', 'date']
 
 
 class HarajatSerializer(serializers.ModelSerializer):
@@ -93,7 +93,7 @@ class HarajatSerializer(serializers.ModelSerializer):
 class TovarYuborishFilialSerializer(serializers.ModelSerializer):
     class Meta:
         model = TovarYuborishFilial
-        fields = ['id', 'tovar_summasi', 'from_filial', 'apteka', 'to_filial', 'accepted', 'sent_time', 'accepted_time']
+        fields = ['id', 'tovar_summasi', 'from_filial', 'to_filial', 'from_apteka_name', 'to_apteka_name', 'accepted', 'sent_time', 'accepted_time']
 
 
 class KirimDorilarSerializer(serializers.ModelSerializer):
