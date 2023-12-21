@@ -1,14 +1,19 @@
 import django_filters
-from django.db.models import F, ExpressionWrapper, fields
-from django.db.models.functions import Now
 from .models import KunlikSavdo, FirmaSavdolari, Nasiyachi, Nasiya, Harajat, TovarYuborishFilial, BolimgaDori, HisoblanganOylik, OlinganOylik, KirimDorilar
 
 
 class MonthFilter(django_filters.Filter):
     def filter(self, queryset, value):
         if value:
-            year, month, day= map(int, value.split('-'))
+            year, month, day=map(int, value.split('-'))
             return queryset.filter(date__year=year, date__month=month)
+        return queryset
+    
+class DayFilter(django_filters.Filter):
+    def filter(self, queryset, value):
+        if value:
+            year, month, day=map(int, value.split('-'))
+            return queryset.filter(date__year=year, date__month=month, date__day=day)
         return queryset
 
 
@@ -83,7 +88,7 @@ class HisoblanganOylikFilter(django_filters.FilterSet):
 class OlinganOylikFilter(django_filters.FilterSet):
     apteka_id = django_filters.NumberFilter(field_name='apteka_id', lookup_expr='exact')
     hodim_id = django_filters.NumberFilter(field_name='hodim_id', lookup_expr='exact')
-    date = django_filters.DateFilter(field_name='date', lookup_expr='exact')
+    date = DayFilter(field_name='date', label='Month(YYYY-MM-DD)')
     from_date = django_filters.DateFilter(field_name='date', lookup_expr='gte')
     to_date = django_filters.DateFilter(field_name='date', lookup_expr='lte')
     month = MonthFilter(field_name='date', label='Month(YYYY-MM)')

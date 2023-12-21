@@ -51,7 +51,7 @@ class NasiyaSerializer(serializers.ModelSerializer):
 class KunlikSavdoSerializer(serializers.ModelSerializer):
     class Meta:
         model = KunlikSavdo
-        fields = ['id', 'apteka_id', 'naqd_pul', 'terminal', 'card_to_card', 'inkassa', 'jami_summa', 'date', 'topshirishga_pul', 'qabul_qildi']
+        fields = ['id', 'apteka_id', 'naqd_pul', 'terminal', 'card_to_card', 'inkassa', 'jami_summa', 'date', 'topshirishga_pul', 'accepted']
 
 
 class BolimSerializer(serializers.ModelSerializer):
@@ -63,7 +63,7 @@ class BolimSerializer(serializers.ModelSerializer):
 class BolimgaDoriSerializer(serializers.ModelSerializer):
     class Meta:
         model = BolimgaDori
-        fields = ['summa', 'apteka_id', 'bolim_id', 'date', 'bolim_name']
+        fields = ['summa', 'apteka_id', 'bolim_id', 'date', 'bolim_name', 'accepted']
 
 
 class HodimSerializer(serializers.ModelSerializer):

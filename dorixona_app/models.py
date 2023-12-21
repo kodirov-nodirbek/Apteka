@@ -141,6 +141,7 @@ class Nasiya(models.Model):
 
         super().save(force_insert, force_update, using, update_fields)
 
+
 class KunlikSavdo(models.Model):
     class Meta:
         verbose_name = "Kunlik savdo"
@@ -151,7 +152,7 @@ class KunlikSavdo(models.Model):
     inkassa = models.DecimalField(max_digits=14, decimal_places=0)
     apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
-    qabul_qildi = models.BooleanField(default=False)
+    accepted = models.BooleanField(default=False)
 
     def jami_summa(self):
         return self.naqd_pul+self.terminal+self.card_to_card+self.inkassa
@@ -169,9 +170,10 @@ class KunlikSavdo(models.Model):
         return self.terminal+self.inkassa
     
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        apteka = Apteka.objects.get(id=self.apteka_id.id)
-        apteka.jami_qoldiq-=Decimal(self.decrease())
-        apteka.save()
+        if self.accepted:
+            apteka = Apteka.objects.get(id=self.apteka_id.id)
+            apteka.jami_qoldiq-=Decimal(self.decrease())
+            apteka.save()
         return super().save(force_insert, force_update, using, update_fields)
 
 
@@ -196,14 +198,16 @@ class BolimgaDori(models.Model):
     apteka_id = models.ForeignKey(Apteka, on_delete=models.CASCADE)
     bolim_id = models.ForeignKey(Bolim, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
+    accepted = models.BooleanField(default=False)
 
     def bolim_name(self):
         return self.bolim_id.name
-    
+
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        apteka = Apteka.objects.get(id=self.apteka_id.id)
-        apteka.jami_qoldiq-=self.summa
-        apteka.save()
+        if self.accepted:
+            apteka = Apteka.objects.get(id=self.apteka_id.id)
+            apteka.jami_qoldiq-=self.summa
+            apteka.save()
         return super().save(force_insert, force_update, using, update_fields)
 
 
