@@ -27,7 +27,7 @@ class Apteka(AbstractUser):
         return summa
     
     def topshiriladigan_pul(self):
-        summalar = KunlikSavdo.objects.filter(apteka_id__id=self.id).filter(qabul_qildi=False)
+        summalar = KunlikSavdo.objects.filter(apteka_id__id=self.id).filter(accepted=False)
         pullar = 0
         for summa in summalar:
             pullar+=summa.topshirishga_pul()
