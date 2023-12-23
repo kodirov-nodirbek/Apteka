@@ -63,7 +63,7 @@ class BolimSerializer(serializers.ModelSerializer):
 class BolimgaDoriSerializer(serializers.ModelSerializer):
     class Meta:
         model = BolimgaDori
-        fields = ['summa', 'apteka_id', 'bolim_id', 'date', 'bolim_name', 'accepted']
+        fields = ['id', 'summa', 'apteka_id', 'bolim_id', 'date', 'bolim_name', 'accepted']
 
 
 class HodimSerializer(serializers.ModelSerializer):
