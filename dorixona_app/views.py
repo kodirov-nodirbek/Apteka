@@ -152,7 +152,7 @@ class KunlikSavdoUpdateView(generics.UpdateAPIView):
         instances = self.get_queryset().filter(id__in=id_list)
         
         for instance in instances:
-            instance.qabul_qildi = True
+            instance.accepted = True
             instance.save()
 
         return Response(status=status.HTTP_200_OK)

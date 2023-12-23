@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import (Apteka, Firma, FirmaSavdolari, Nasiyachi, Nasiya, KunlikSavdo, Bolim, BolimgaDori, Hodim, HisoblanganOylik, Harajat, TovarYuborishFilial)
+from .models import (Apteka, Firma, FirmaSavdolari, Nasiyachi, Nasiya, KunlikSavdo, Bolim, BolimgaDori, Hodim, HisoblanganOylik, Harajat, TovarYuborishFilial, OlinganOylik)
 
 
 @admin.register(Apteka)
@@ -75,3 +75,8 @@ class HarajatAdmin(admin.ModelAdmin):
 @admin.register(TovarYuborishFilial)
 class TovarYuborishFilialAdmin(admin.ModelAdmin):
     list_display = ("from_filial", "to_filial", "accepted")
+
+
+@admin.register(OlinganOylik)
+class OLinganOylikAdmin(admin.ModelAdmin):
+    list_display = ('hodim_id', 'hodim_name', 'apteka_id', "apteka_nomi", 'naqd_pul', 'card_to_card', 'summa', 'date')

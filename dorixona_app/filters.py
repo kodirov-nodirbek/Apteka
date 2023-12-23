@@ -54,7 +54,7 @@ class KunlikSavdoFilter(django_filters.FilterSet):
     date = django_filters.DateFilter(field_name='date', lookup_expr='date')
     from_date = django_filters.DateFilter(field_name='date', lookup_expr='date__gte')
     to_date = django_filters.DateFilter(field_name='date', lookup_expr='date__lte')
-    qabul_qildi = django_filters.BooleanFilter(field_name='qabul_qildi', lookup_expr='exact')
+    accepted = django_filters.BooleanFilter(field_name='accepted', lookup_expr='exact')
 
     class Meta:
         model = KunlikSavdo
@@ -67,6 +67,7 @@ class BolimgaDoriFilter(django_filters.FilterSet):
     date = django_filters.DateFilter(field_name='date', lookup_expr='date')
     from_date = django_filters.DateFilter(field_name='date', lookup_expr='date__gte')
     to_date = django_filters.DateFilter(field_name='date', lookup_expr='date__lte')
+    accepted = django_filters.BooleanFilter(field_name='accepted', lookup_expr='exact')
 
     class Meta:
         model = BolimgaDori
