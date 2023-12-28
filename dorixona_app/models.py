@@ -226,6 +226,9 @@ class Hodim(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+    
+    def apteka_name(self):
+        return self.apteka_id.name
 
 
 class HisoblanganOylik(models.Model):
@@ -246,8 +249,8 @@ class HisoblanganOylik(models.Model):
 
 
 class OlinganOylik(models.Model):
-    naqd_pul = models.DecimalField(max_digits=14, decimal_places=0, null=True)
-    card_to_card = models.DecimalField(max_digits=14, decimal_places=0, null=True)
+    naqd_pul = models.DecimalField(max_digits=14, decimal_places=0, default=0)
+    card_to_card = models.DecimalField(max_digits=14, decimal_places=0, default=0)
     date = models.DateTimeField(default=datetime.now())
     hodim_id = models.ForeignKey(Hodim, on_delete=models.CASCADE)
     apteka_id = models.ForeignKey(Apteka, on_delete=models.CASCADE)

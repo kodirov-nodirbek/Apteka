@@ -69,7 +69,7 @@ class BolimgaDoriSerializer(serializers.ModelSerializer):
 class HodimSerializer(serializers.ModelSerializer):
     class Meta:
         model = Hodim
-        fields = ['id', 'first_name', 'last_name', 'middle_name', 'apteka_id', 'active', 'created_at', 'ish_haqi_kunlik', 'lavozimi']
+        fields = ['id', 'first_name', 'last_name', 'middle_name', 'apteka_id', 'apteka_name', 'active', 'created_at', 'ish_haqi_kunlik', 'lavozimi']
         
 
 class HisoblanganOylikSerializer(serializers.ModelSerializer):
@@ -81,7 +81,7 @@ class HisoblanganOylikSerializer(serializers.ModelSerializer):
 class OlinganOylikSerializer(serializers.ModelSerializer):
     class Meta:
         model = OlinganOylik
-        fields = ['hodim_id', 'hodim_name', 'apteka_id', "apteka_nomi", 'naqd_pul', 'card_to_card', 'summa', 'date']
+        fields = ['id', 'hodim_id', 'hodim_name', 'apteka_id', "apteka_nomi", 'naqd_pul', 'card_to_card', 'summa', 'date']
 
 
 class HarajatSerializer(serializers.ModelSerializer):
