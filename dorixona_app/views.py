@@ -1,9 +1,14 @@
 from datetime import datetime
+
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
+
 from rest_framework import filters, status, generics
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .filters import (KunlikSavdoFilter, FirmaSavdolariFilter, NasiyachiFilter, NasiyaFilter, HarajatFilter, TovarYuborishFilialFilter, BolimgaDoriFilter, HisoblanganOylikFilter, OlinganOylikFilter, KirimDorilarFilter)
@@ -64,6 +69,9 @@ class FirmaViewSet(ModelViewSet):
         serializer = serializers.FirmaSerializer(firma_object)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
     
 
 class FirmaSavdolariViewSet(ModelViewSet):

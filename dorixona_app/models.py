@@ -1,6 +1,4 @@
 from decimal import Decimal
-from typing import Iterable, Optional
-from django.utils import timezone
 from datetime import datetime
 from django.db import models
 from django.contrib.auth.models import AbstractUser
@@ -151,7 +149,7 @@ class KunlikSavdo(models.Model):
     naqd_pul = models.DecimalField(max_digits=14, decimal_places=0)
     inkassa = models.DecimalField(max_digits=14, decimal_places=0)
     apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
-    date = models.DateTimeField(auto_now_add=True)
+    date = models.DateTimeField(default=datetime.now())
     accepted = models.BooleanField(default=False)
 
     def jami_summa(self):
