@@ -76,7 +76,7 @@ class FirmaViewSet(ModelViewSet):
     
 
 class FirmaSavdolariViewSet(ModelViewSet):
-    queryset = FirmaSavdolari.objects.all()
+    queryset = FirmaSavdolari.objects.all().order_by("tolov_muddati")
     serializer_class = serializers.FirmaSavdolariSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
@@ -93,6 +93,33 @@ class FirmaSavdolariViewSet(ModelViewSet):
         jami_qarz = sum(summa.jami_qarz() for summa in queryset)
         serializer = self.get_serializer(queryset, many=True)
         return Response({"jami_tolangan_summalar": jami_tolandi, "jami_qarzlar": jami_qarz, "data": serializer.data})
+    
+    def partial_update(self, request, *args, **kwargs):
+        savdo = self.get_object()
+
+        data = request.data
+        qaytarilgan_tovar_summasi = data.get("qaytarilgan_tovar_summasi", None)
+        summa = data.get("summa", None)
+        apteka_id = data.get("apteka_id", None)
+        if qaytarilgan_tovar_summasi:
+            if savdo.jami_qarz() <= int(qaytarilgan_tovar_summasi):
+                savdo.tolandi = True
+                savdo.save()
+        elif summa and apteka_id:
+            pay = {
+                "summa": summa,
+                "sana": str(datetime.now()),
+                "apteka_id": apteka_id
+            }
+            savdo.tolangan_summalar.append(pay)
+            savdo.save()
+            if savdo.jami_qarz() <= 0:
+                savdo.tolandi = True
+                savdo.save()
+        return super().partial_update(request, *args, **kwargs)
+        # serializer = serializers.FirmaSavdolariSerializer(savdo)
+        
+        # return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class NasiyachiViewSet(ModelViewSet):
