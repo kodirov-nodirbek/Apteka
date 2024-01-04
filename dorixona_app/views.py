@@ -31,7 +31,7 @@ class FirmaViewSet(ModelViewSet):
 
     def partial_update(self, request, *args, **kwargs):
         firma_object = self.get_object()
-        savdolar = [savdo for savdo in FirmaSavdolari.objects.filter(firma_id=firma_object.id).order_by("tolov_muddati") if savdo.tolandi()==False]
+        savdolar = [savdo for savdo in FirmaSavdolari.objects.filter(firma_id=firma_object.id).order_by("tolov_muddati") if savdo.tolandi==False]
         data = request.data
         naqd = data.get("naqd", 0)
         plastik = data.get("plastik", 0)
@@ -48,6 +48,9 @@ class FirmaViewSet(ModelViewSet):
                 }
                 savdo.tolangan_summalar.append(pay)
                 savdo.save()
+                if savdo.jami_qarz()<=0:
+                    savdo.tolandi = True
+                    savdo.save()
                 break
             elif tolov!=0 and apteka_id and savdo.jami_qarz()<tolov:
                 pay = {
@@ -57,6 +60,7 @@ class FirmaViewSet(ModelViewSet):
                 }
                 tolov-=savdo.jami_qarz()
                 savdo.tolangan_summalar.append(pay)
+                savdo.tolandi = True
                 savdo.save()
 
         firma_object.name = data.get("name", firma_object.name)
@@ -67,11 +71,8 @@ class FirmaViewSet(ModelViewSet):
         if apteka_id and tolov!=0:
             Harajat.objects.create(apteka_id=Apteka.objects.get(id=apteka_id), naqd_pul=naqd, plastik=plastik, firma_uchun=True, firma_id=firma_object, izoh=izoh)
         serializer = serializers.FirmaSerializer(firma_object)
-
+        
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
     
 
 class FirmaSavdolariViewSet(ModelViewSet):

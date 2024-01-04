@@ -51,8 +51,10 @@ class Firma(models.Model):
             savdo.jami_tolangan_summa() if savdo.tolangan_summalar else 0
             for savdo in firma_savdolari
         )
-        
-        return total_tan_narxi - total_tolangan_summa
+        qaytarilgan_summa = sum(
+            savdo.qaytarilgan_tovar_summasi for savdo in firma_savdolari
+        )
+        return total_tan_narxi - total_tolangan_summa - qaytarilgan_summa
     
     def haqdor(self):
         return int(self.jami_haqi())>0
@@ -67,7 +69,6 @@ class FirmaSavdolari(models.Model):
         verbose_name = "Firma savdosi"
         verbose_name_plural = "Firma savdolari"
 
-    apteka_id = models.ForeignKey(to=Apteka, on_delete=models.CASCADE)
     firma_id = models.ForeignKey(to=Firma, on_delete=models.CASCADE)
     shartnoma_raqami = models.CharField(max_length=50)
     harid_sanasi = models.DateTimeField(auto_now_add=True)
@@ -76,8 +77,8 @@ class FirmaSavdolari(models.Model):
     tan_narxi = models.DecimalField(max_digits=14, decimal_places=0)
     sotish_narxi = models.DecimalField(max_digits=14, decimal_places=0)
     qaytarilgan_tovar_summasi = models.DecimalField(max_digits=14, decimal_places=0, default=Decimal(0))
-    ochirishga_sorov = models.BooleanField(default=False)
     izoh = models.TextField(null=True, blank=True)
+    tolandi = models.BooleanField(default=False)
 
     def jami_tolangan_summa(self):
         tolangan_summalar = self.tolangan_summalar or []
@@ -88,9 +89,6 @@ class FirmaSavdolari(models.Model):
         tolangan_summa = self.jami_tolangan_summa()
         qaytarilgan_tovar_summasi = self.qaytarilgan_tovar_summasi or Decimal(0)
         return tan_narxi - tolangan_summa - qaytarilgan_tovar_summasi
-
-    def tolandi(self):
-        return self.jami_qarz()<=0
 
 
 class Nasiyachi(models.Model):
@@ -152,6 +150,9 @@ class KunlikSavdo(models.Model):
     date = models.DateTimeField(default=datetime.now())
     accepted = models.BooleanField(default=False)
 
+    def apteka_name(self):
+        return self.apteka_id.name
+
     def jami_summa(self):
         return self.naqd_pul+self.terminal+self.card_to_card+self.inkassa
 
@@ -200,6 +201,9 @@ class BolimgaDori(models.Model):
 
     def bolim_name(self):
         return self.bolim_id.name
+
+    def apteka_name(self):
+        return self.apteka_id.name
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         if self.accepted:
